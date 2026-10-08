@@ -1,0 +1,9 @@
+{
+  "name": "fly-brain",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A kitchen fly simulator with connectome-informed behaviour and research-based vision",
+  "scripts": {
+    "test": "node verify.js && node verify_camera.js && node verify_daylight.js && node verify_flight.js && node verify_food.js && node verify_room.js && node verify_vision.js && node verify_eye_display.js && node verify_visual_circuit.js && node verify_async_vision.js"
+  }
+}
