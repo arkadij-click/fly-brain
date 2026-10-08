@@ -1,0 +1,208 @@
+/* The room is the playfield; instruments float at its edges. */
+.outside-controls{width:100%;border-top:1px solid #ffffff18;padding-top:12px}.outside-modes{display:flex;gap:5px;margin-top:8px}.outside-modes button{flex:1;min-height:34px;font-size:12px;padding:6px}.outside-controls .pair{font-size:12px}
+body>header,main,main *{-webkit-user-select:none;user-select:none}
+dialog,dialog *{-webkit-user-select:text;user-select:text}
+:root{--glass:rgba(14,23,19,.73)}
+html,body{height:100%;overflow:hidden}body{margin:0;height:100dvh;font:12px system-ui,sans-serif;background:#101615}
+body>header{position:absolute;inset:0 0 auto;height:35px;padding:0 14px;z-index:3;border:0;background:linear-gradient(#07110ae0,#07110a00);pointer-events:none}body>header>div{display:flex;align-items:center;gap:12px}h1{font:17px Georgia,serif;margin:0}body>header p{font-size:9px;margin:0;opacity:.65}.eyebrow{font-size:8px;letter-spacing:1px}body>header .eyebrow{opacity:.6}
+main{position:relative;display:block;width:100%;height:100dvh;min-height:0;padding:0;overflow:hidden}
+.world{position:absolute;inset:0;padding:0;min-width:0;min-height:0}
+.scene{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0;background:#090f0c;overflow:hidden}#scene{display:block;width:100%;height:100%;touch-action:none}
+.glass,.eyes-panel{background:var(--glass);border:1px solid #e6f4df25;border-radius:8px;box-shadow:0 3px 18px #0002;backdrop-filter:blur(12px)}
+button,select,summary{font:11px system-ui,sans-serif;color:#e6ece4}button,select{min-height:28px;padding:4px 8px;border-radius:5px;background:#ffffff06;border:1px solid #ffffff12;cursor:pointer;white-space:nowrap}button:hover,select:hover{background:#ffffff18;border-color:#b5e2c455}button.active{background:#b5e2c4d9;border-color:transparent;color:#11251b}button:disabled{opacity:.3;cursor:default}button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid #b5e2c4;outline-offset:2px}input{accent-color:#b5e2c4}input[type=range]{height:16px;margin:0;min-width:32px}input[type=checkbox]{margin:0}
+.caption{top:48px;left:14px;padding:8px 10px;background:var(--glass);border:1px solid #ffffff15;border-radius:7px}.caption strong{font-size:14px;margin-top:3px}.caption .eyebrow{font-size:7px}.camera-badge{display:none}
+.camera-controls{position:absolute;top:117px;left:14px;display:flex;gap:6px;align-items:center;margin:0;padding:4px;flex-wrap:nowrap}.camera-controls label{margin:0;gap:5px;font-size:9px}.camera-controls input{width:65px}.camera-controls .source{display:none}
+.toolbar{position:absolute;left:14px;bottom:14px;display:flex;gap:3px;align-items:center;flex-wrap:nowrap;margin:0;padding:5px;z-index:2}.toolbar #food{display:none}
+.food-tools{position:absolute;left:14px;bottom:62px;margin:0;padding:5px;z-index:2}.food-tools header{display:none}.food-tools .brushes{display:flex;gap:3px;flex-wrap:nowrap}.food-tools button{padding:4px 7px;min-width:29px;min-height:29px;font-size:10px}.food-tools button.food-brush{font-size:0}.food-tools button span{font-size:19px;margin:0}.food-help{position:absolute;left:0;bottom:calc(100% + 6px);margin:0;padding:5px 8px;border-radius:5px;background:#0c1813db;max-width:min(440px,75vw);font-size:10px;line-height:1.4;white-space:normal;pointer-events:none;display:none}.food-tools:focus-within .food-help{display:none}
+.room-dock,.audio-dock{position:absolute;top:46px;z-index:4;margin:0}.room-dock{left:50%;transform:translateX(-50%)}.audio-dock{right:14px}
+summary{cursor:pointer;list-style:none;padding:8px 10px;user-select:none;white-space:nowrap}summary::-webkit-details-marker{display:none}summary::after{content:'⌄';margin-left:8px;color:#aebfb2}details[open]>summary::after{content:'⌃'}details[open]>summary{border-bottom:1px solid #ffffff12}
+.room-controls{display:flex;flex-direction:column;gap:10px;margin:0;padding:12px;width:230px;border:0;background:none}.room-controls .section-title{display:none}.room-controls label{display:flex;justify-content:space-between;gap:10px;min-width:0;margin:0;font-size:11px;width:100%}.room-controls input[type=range]{width:125px;max-width:none;flex:0 0 auto}
+.audio-dock[open]{width:230px}.sound-panel{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:10px;background:none;border:0}.sound-panel label{font-size:10px;gap:6px;margin:0}.sound-channel{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}.sound-channel input[type=range]{width:130px}.sound-status{font-size:9px;line-height:1.4;color:var(--muted);width:100%}
+aside{position:absolute;top:93px;right:14px;width:210px;padding:0;border:0;display:flex;flex-direction:column;gap:6px;z-index:2;background:none;overflow:visible;min-width:0}
+.eyes-panel{margin:0;padding:8px}.eyes-header{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:5px}.eyes-header h2{font:13px Georgia,serif;margin:0}.eyes-header .eyebrow{display:none}.eyes-header label{font-size:9px;gap:4px;margin:0}.vision-controls{display:flex;gap:4px;align-items:center;margin-bottom:4px}.vision-controls select{flex:1;min-width:0;width:90px;min-height:22px;padding:2px 4px;font-size:9px}.vision-controls button{padding:1px 5px;min-height:22px}.vision-coverage{font-size:7px;text-align:center;padding:2px 0;margin-bottom:4px;color:#b5e2c4;background:linear-gradient(90deg,#060b08 0 7%,#244739 7% 48%,#688075 48% 52%,#304357 52% 93%,#060b08 93%);white-space:nowrap}.eye-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.eye-label{font-size:7px;letter-spacing:.5px;margin-bottom:3px;white-space:nowrap}.eye-grid canvas{width:100%;height:72px;aspect-ratio:auto;display:block;border-radius:3px;background:#080e0a}.eye-note{font-size:7px;line-height:1.25;margin:5px 0 0;color:#aebbb1}
+.instruments summary{font-size:10px;padding:7px 9px}.instrument-body{padding:8px;max-height:calc(100dvh - 345px);overflow:auto;scrollbar-width:thin;scrollbar-color:#63877466 transparent}.instrument-body .section{margin:0 0 9px;padding:0 0 8px;border-bottom:1px solid #ffffff18}.section-title{font-size:8px;letter-spacing:.8px;margin-bottom:5px}#closeup{width:100%;height:48px;border-radius:4px}#brain{width:100%;height:65px}.pair{font-size:9px;line-height:11px}.bar{height:3px;margin:3px 0 5px}#senses{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}.source#brain-info{font-size:8px;line-height:1.4;margin-top:4px}#events{font-size:9px;line-height:1.4;min-height:0}.notice{font-size:8px;line-height:1.4;color:#a5b5a9}.notice a{white-space:nowrap}
+.metrics{position:absolute;right:14px;bottom:15px;display:flex;gap:12px;align-items:baseline;margin:0;padding:5px 8px;border:0;border-radius:6px;background:#0a1510a8;pointer-events:none}.metric{display:flex;gap:4px;align-items:baseline}.metric small{font-size:8px;letter-spacing:0;text-transform:none;color:#acb7ad}.metric b{font-size:10px;margin:0}.metric em{font-size:8px}.metric:last-child{display:none}
+.miniroom{width:92px;right:14px;bottom:94px;border-color:#dceac744;opacity:.85}.hud{bottom:56px;left:14px;right:14px;font-size:9px;justify-content:flex-end;gap:6px}.tag{padding:4px 7px;background:#0a1510b8}#target{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hint,.world>footer{display:none}
+dialog{color:#edf0e7;background:#17231d;border:1px solid #b5e2c455;border-radius:8px;width:min(660px,92vw);max-height:85dvh;padding:20px;font-size:13px;line-height:1.55}dialog::backdrop{background:#000a}dialog h2{font:23px Georgia,serif}#vision-close{float:right;font-size:20px}
+@media(max-width:700px){body>header .eyebrow,body>header p{display:none}h1{font-size:15px}aside{width:165px;right:10px}.audio-dock{right:10px}.caption{left:10px;max-width:calc(100vw - 190px)}.caption strong{font-size:12px}.camera-controls{left:10px}.camera-controls input{width:50px}.room-dock{left:auto;right:94px;transform:none}.room-dock[open]{right:10px}.eye-grid canvas{height:58px}.eyes-header h2{font-size:11px}.eyes-panel{padding:6px}.metrics{right:10px;bottom:103px;gap:8px}.metric small{font-size:7px}.miniroom{bottom:142px;right:10px;width:70px}.hud{bottom:181px;right:10px;left:auto;flex-direction:column;align-items:flex-end;gap:3px;max-width:175px}.toolbar{left:10px;bottom:10px;gap:2px;padding:4px}.toolbar button,.toolbar select{font-size:10px;padding:4px 6px}.food-tools{left:10px;bottom:56px}.food-tools button{padding:4px 6px;min-width:27px}.food-tools button span{font-size:17px}.instrument-body{max-height:calc(100dvh - 420px)}}
+@media(max-height:560px){.eye-grid canvas{height:42px}.eye-note{display:none}.instrument-body{max-height:calc(100dvh - 270px)}.metrics{bottom:14px}.caption{top:40px}.camera-controls{top:102px}.room-dock,.audio-dock{top:40px}aside{top:83px}.miniroom{bottom:87px;width:70px}}
+@media(max-width:420px){.caption .eyebrow{display:none}.caption{top:46px;padding:6px 8px}.camera-controls{top:90px}.camera-controls label{font-size:0}.camera-controls input{width:45px}.camera-controls button{font-size:10px}.room-dock summary span,.audio-dock summary span{display:none}.room-dock{right:58px}.audio-dock[open],.room-controls{width:210px}.room-controls input[type=range]{width:115px}.sound-channel input[type=range]{width:120px}.eye-note{font-size:7px}.metrics .metric:first-child{display:none}}
+.placing .food-tools .food-help{display:block}.audio-on{color:#c9edbb}.audio-on::before{content:"";display:inline-block;width:4px;height:4px;background:#b5e2c4;border-radius:50%;margin-right:6px}
+@media(max-width:420px){.room-dock{right:75px}}
+
+/* Readable instruments, grouped by task around the playfield. */
+:root{--glass:rgba(19,28,23,.88)}
+body{font-size:14px}
+button,select,summary{font-size:14px;min-height:40px}
+button,select{padding:8px 12px}
+select{color-scheme:dark}select option{background:#233027;color:#edf0e7}
+summary{padding:10px 14px}
+input[type=checkbox]{width:18px;height:18px}
+input[type=range]{height:24px}
+body>header{height:42px;padding:0 18px}h1{font-size:20px}
+body>header p{font-size:11px}.eyebrow{font-size:10px}
+.caption{top:56px;left:18px;padding:10px 14px}.caption strong{font-size:18px}.caption .eyebrow{font-size:10px}
+.camera-controls{left:18px;top:140px;padding:6px;gap:10px}.camera-controls label{font-size:12px;gap:8px}.camera-controls input{width:95px}
+.room-dock,.audio-dock{top:56px}.audio-dock{right:18px}.room-dock{left:auto;right:150px;transform:none}
+.room-controls{width:290px;padding:16px;gap:16px}.room-controls label,.sound-panel label{font-size:14px}.room-controls input[type=range]{width:160px}
+.audio-dock[open]{width:290px}.sound-panel{padding:14px;gap:14px}.sound-channel input[type=range]{width:155px}.sound-status{font-size:12px}
+aside{top:110px;right:18px;width:344px;gap:10px}
+.eyes-panel{padding:12px;position:relative}.eyes-header{margin-bottom:10px;gap:10px}.eyes-header>div{display:flex;gap:10px;align-items:center}.eyes-header h2{font-size:21px}.eyes-header label{font-size:12px;gap:6px}
+#expand-eyes{font-size:20px;padding:0;width:32px;min-height:32px;border:0;background:transparent}
+.vision-controls{gap:6px;margin-bottom:10px}.vision-modes{display:flex;flex:1;gap:3px}.vision-modes button{flex:1;padding:7px 6px;min-height:36px;font-size:12px}.vision-controls #vision-info{min-height:36px;padding:4px 9px;font-size:17px}
+.eye-view-controls{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 0 8px;font-size:11px;color:#c2cec6}.eye-view-controls button{font-size:11px;padding:5px 8px;min-height:30px}
+.vision-coverage{font-size:10px;padding:5px 0;margin-bottom:8px}
+.eye-grid{gap:8px}.eye-label{font-size:10px;margin-bottom:5px;letter-spacing:.6px}.eye-grid canvas{height:150px;border:1px solid #ffffff18}
+.eyes-panel.expanded{position:fixed;right:18px;top:110px;width:min(720px,calc(100vw - 36px));z-index:6}.eyes-panel.expanded .eye-grid canvas{height:min(320px,calc(100dvh - 330px))}
+.instruments summary{font-size:14px;padding:10px 14px}.instrument-body{max-height:calc(100dvh - 480px);padding:12px}.pair,#events{font-size:12px;line-height:1.5}.section-title{font-size:10px}.bar{height:5px}.source#brain-info,.notice{font-size:11px}#closeup{height:80px}#brain{height:100px}
+.food-tools{left:18px;bottom:76px;padding:8px}.food-tools header{display:flex;margin:0 2px 7px;padding:0;justify-content:space-between;height:auto;gap:20px}.food-tools header .section-title{font-size:10px;letter-spacing:1px}.food-tools header .source{font-size:10px;line-height:1}
+.food-tools .brushes{gap:5px}.food-tools button,.food-tools button.food-brush{font-size:13px;min-height:42px;padding:7px 10px;min-width:40px}.food-tools button span{font-size:21px;margin-right:5px}.food-help{font-size:12px;max-width:min(540px,80vw);padding:8px 10px}
+.toolbar{left:18px;bottom:18px;padding:7px;gap:5px}
+.miniroom{width:125px;right:18px;bottom:110px}.hud{right:18px;bottom:74px;font-size:12px}.metrics{right:18px;bottom:20px;padding:8px 10px;gap:12px}.metric small{font-size:10px}.metric b{font-size:13px}.metric em{font-size:10px}
+@media(max-width:1000px){aside{width:300px}.eye-grid canvas{height:125px}.food-tools button,.food-tools button.food-brush{font-size:12px;padding:7px 8px}.food-tools button span{margin-right:3px}.food-tools .brushes{gap:3px}.camera-controls input{width:80px}}
+@media(max-width:760px){
+ body>header p,body>header .eyebrow{display:none}h1{font-size:18px}body>header{padding:0 12px}
+ aside{width:260px;right:12px;top:108px}.eyes-panel{padding:10px}.eyes-header h2{font-size:18px}.eyes-header label{font-size:11px}.eyes-header{gap:5px}.eyes-header>div{gap:3px}.eye-grid canvas{height:105px}.vision-modes button{font-size:11px;padding:6px 4px}.vision-coverage{font-size:8px}.eye-view-controls{font-size:9px}
+ .caption{left:12px;top:54px;padding:8px 10px}.caption strong{font-size:15px}.caption .eyebrow{font-size:8px}.camera-controls{left:12px;top:127px;gap:5px}.camera-controls input{width:65px}.camera-controls label{font-size:11px}
+ .room-dock,.audio-dock{top:54px}.audio-dock{right:12px}.room-dock{right:136px}
+ .food-tools{left:12px;bottom:72px;right:12px;width:fit-content;max-width:calc(100vw - 24px)}.food-tools button.food-brush{font-size:0}.food-tools button{font-size:12px;padding:7px 9px}.food-tools button span{font-size:22px;margin:0}.food-tools header{margin-bottom:6px}.toolbar{left:12px;bottom:12px}.toolbar button,.toolbar select{font-size:12px;padding:7px 9px}
+ .metrics{bottom:132px;right:12px}.miniroom{bottom:175px;right:12px;width:95px}.hud{bottom:236px;right:12px;font-size:10px}.instrument-body{max-height:calc(100dvh - 450px)}
+}
+@media(max-width:480px){
+ aside{width:calc(100vw - 24px);top:auto;bottom:146px}.eyes-panel{padding:9px}.eye-grid canvas{height:100px}.eyes-header{margin-bottom:6px}.eyes-header h2{font-size:18px}.vision-controls{margin-bottom:6px}.vision-coverage{display:none}.eye-view-controls{margin-bottom:5px}.eye-label{font-size:9px}.instruments{display:none}
+ .room-dock{right:68px}.room-dock summary span,.audio-dock summary span{display:none}.room-dock[open]{right:12px}.audio-dock[open]{width:280px}.room-controls{width:280px}
+ .camera-controls{top:126px}.caption{max-width:calc(100vw - 90px)}.camera-controls label{font-size:11px}.food-tools button{min-width:35px;padding:6px 7px}.food-tools .brushes{gap:3px}.food-tools{padding:6px;bottom:70px}.food-tools button span{font-size:20px}.toolbar{gap:3px;padding:6px}.toolbar button,.toolbar select{padding:7px 8px}
+ .metrics,.miniroom{display:none}.hud{top:182px;bottom:auto;right:12px}.eyes-panel.expanded{top:52px;right:12px;width:calc(100vw - 24px)}.eyes-panel.expanded .eye-grid{grid-template-columns:1fr}.eyes-panel.expanded .eye-grid canvas{height:min(220px,calc((100dvh - 270px)/2))}
+}
+
+/* Vertical tools on the left; compact vision and brain on the right. */
+aside{top:56px;bottom:18px;right:18px;width:304px;gap:8px;display:flex;flex-direction:column}
+.eyes-panel{padding:10px;flex:none}.eyes-header{margin-bottom:5px}.eyes-header h2{font-size:18px}.eyes-header label{font-size:11px}
+.vision-controls{margin-bottom:5px}.vision-modes button{min-height:30px;padding:5px;font-size:11px}.vision-controls #vision-info{min-height:30px}
+.eye-view-controls{margin-bottom:6px;font-size:10px}.eye-view-controls button{min-height:25px;padding:4px 6px;font-size:10px}
+.vision-coverage{display:none}.eye-label{font-size:9px;margin-bottom:4px}.eye-grid canvas{height:96px}
+.instruments{display:block;min-height:0;overflow:hidden;flex:none}.instruments[open]{flex:0 1 auto;display:flex;flex-direction:column}
+.instruments>summary{flex:none;min-height:36px;padding:8px 12px;font-size:13px}
+.instrument-body{max-height:none;min-height:0;overflow:auto;padding:10px;flex:1}
+.instrument-body .section{margin-bottom:8px;padding-bottom:8px}.section-title{margin-bottom:5px}
+.vitals-grid{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center}#closeup{height:85px}
+.vitals-grid .pair{font-size:11px;line-height:15px}.vitals-grid .bar{margin:3px 0 7px;height:4px}
+#brain{height:110px}.brain-section{border-bottom:0!important;margin-bottom:0!important;padding-bottom:0!important}
+.diagnostics>summary{font-size:11px;padding:6px 0;min-height:28px;color:#b7cbbd}.diagnostics[open]>summary{margin-bottom:8px}.diagnostics .notice{margin-top:8px}
+.room-dock{top:54px;left:calc(50% - 110px);right:auto;transform:none}.audio-dock{top:54px;left:calc(50% + 8px);right:auto}
+.food-tools{top:208px;bottom:auto;left:18px;right:auto;width:112px;max-width:none;padding:7px}
+.food-tools header{display:block;margin:0 2px 7px}.food-tools header .section-title{font-size:9px;letter-spacing:.4px;margin-bottom:5px}.food-tools header .source{font-size:9px}
+.food-tools .brushes{flex-direction:column;gap:4px}
+.food-tools button,.food-tools button.food-brush{display:flex;align-items:center;justify-content:flex-start;width:100%;min-height:38px;font-size:12px;padding:6px 8px}
+.food-tools button span{font-size:20px;margin-right:6px}.food-tools #erase,.food-tools #undo-food{justify-content:center}
+.food-help{left:calc(100% + 10px);bottom:0;width:260px;max-width:calc(100vw - 155px)}
+.hud{right:338px;bottom:78px}.miniroom{right:338px;bottom:114px;width:100px}.metrics{right:338px;bottom:23px}
+.eyes-panel.expanded{top:56px}.eyes-panel.expanded .vision-coverage{display:block}
+@media(max-width:1000px){aside{width:280px}.hud,.miniroom,.metrics{right:314px}.food-tools{width:100px}.food-tools button,.food-tools button.food-brush{font-size:11px;padding:6px}.room-dock{left:calc(50% - 130px)}.audio-dock{left:calc(50% - 15px)}}
+@media(max-height:620px) and (min-width:481px){
+ aside{top:12px;width:280px;bottom:12px}.eyes-panel{padding:8px}.eye-grid canvas{height:65px}.eyes-header{margin-bottom:3px}.eye-view-controls{display:none}.eyes-panel.expanded .eye-view-controls{display:flex}
+ .room-dock,.audio-dock{top:12px}.room-dock{left:calc(50% - 170px)}.audio-dock{left:calc(50% - 65px)}.room-dock summary,.audio-dock summary{font-size:12px;padding:8px;min-height:36px}
+ .food-tools{top:148px;width:96px;padding:5px}.food-tools button,.food-tools button.food-brush{min-height:27px;padding:3px 6px}.food-tools button span{font-size:17px}.food-tools .brushes{gap:3px}.food-tools header{margin-bottom:5px}
+ #closeup{height:65px}.vitals-grid{grid-template-columns:70px 1fr;gap:8px}#brain{height:80px}.instrument-body{padding:8px}.miniroom,.metrics{display:none}.hud{right:314px;bottom:75px}.eyes-panel.expanded{top:12px}
+}
+@media(max-width:480px){
+ aside{top:auto;bottom:78px;width:calc(100vw - 104px);right:10px;max-height:calc(100dvh - 250px)}.eye-grid canvas{height:70px}.eyes-header h2{font-size:15px}.eyes-header label{font-size:0}.eyes-header label input{width:16px;height:16px}.eyes-panel{padding:7px}.eyes-header>div{gap:0}.vision-modes button{font-size:10px;padding:4px 2px}.eye-view-controls{display:none}.eye-label{font-size:8px}
+ .instruments{display:block}.instruments[open]{flex:0 1 auto}.instrument-body{padding:7px}.vitals-grid{grid-template-columns:55px 1fr;gap:6px}#closeup{height:65px}#brain{height:75px}.vitals-grid .pair{font-size:10px}.vitals-grid .bar{margin-bottom:5px}.instrument-body .section{margin-bottom:5px;padding-bottom:5px}
+ .food-tools{left:10px;right:auto;top:206px;bottom:auto;width:76px;padding:5px}.food-tools header .section-title{font-size:8px}.food-tools button,.food-tools button.food-brush{font-size:0;min-height:38px;padding:5px;justify-content:center}.food-tools button span{font-size:22px;margin:0}.food-tools #observe{font-size:10px}.food-tools #erase,.food-tools #undo-food{font-size:14px}
+ .room-dock{left:auto;right:70px;top:54px}.audio-dock{left:auto;right:12px;top:54px}.room-dock[open]{left:auto;right:12px}.audio-dock[open]{left:auto;right:12px}
+ .hud{top:182px;bottom:auto;right:12px}.miniroom,.metrics{display:none}.eyes-panel.expanded{right:12px;top:52px;width:calc(100vw - 24px)}.eyes-panel.expanded .eye-view-controls{display:flex}
+}
+
+
+/* Essentials only: one status/camera dock, tools, senses, and settings. */
+.caption{top:18px;left:18px;padding:11px 12px;pointer-events:auto;max-width:none}
+.caption strong{font-size:16px}.caption .eyebrow{font-size:9px}
+.caption .camera-controls{position:static;margin:9px 0 0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;gap:8px}
+.caption .camera-controls button{min-height:34px;padding:6px 10px;font-size:12px}
+.caption .camera-controls label{font-size:11px}.caption .camera-controls input{width:85px}
+.hud,.metrics{display:none!important}
+.room-dock,.audio-dock{top:18px}
+aside{top:18px}
+.food-tools{top:162px}
+.miniroom{right:338px;bottom:18px;width:112px}
+.eyes-panel.expanded{top:18px}
+@media(max-width:1000px){.miniroom{right:314px}}
+@media(max-height:620px) and (min-width:481px){
+ .caption{top:12px;left:12px;padding:8px 10px}.caption strong{font-size:14px}.caption .camera-controls{margin-top:6px}.caption .camera-controls button{min-height:30px;padding:4px 8px}
+ .room-dock,.audio-dock,aside{top:12px}.food-tools{top:133px;left:12px}.miniroom{display:none}
+}
+@media(max-width:480px){
+ .caption{top:12px;left:10px;padding:8px 10px;max-width:calc(100vw - 132px)}.caption strong{font-size:13px}.caption .camera-controls{margin-top:7px;gap:5px}.caption .camera-controls button{font-size:11px;padding:5px 7px}.caption .camera-controls label{font-size:0}.caption .camera-controls input{width:62px}
+ .room-dock,.audio-dock{top:12px}.food-tools{top:136px}.miniroom{display:none}aside{top:auto;bottom:78px;max-height:calc(100dvh - 190px)}.eyes-panel.expanded{top:12px}
+}
+@media(max-height:560px) and (min-width:481px){
+ body>header{display:none}.caption{top:12px}.camera-controls{top:86px}.room-dock,.audio-dock{top:12px}aside{top:65px;width:300px}.eye-grid canvas{height:105px}.eyes-header{margin-bottom:6px}.vision-controls{margin-bottom:5px}.vision-coverage{display:none}.instruments{display:none}.food-tools{bottom:67px}.toolbar{bottom:12px}.metrics{bottom:15px}.miniroom{display:none}.hud{bottom:62px}.eyes-panel.expanded{top:12px}.eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 215px)}
+}
+
+/* Compact left-side instruments. */
+.caption{top:12px;left:12px;padding:8px 9px}
+.caption strong{font-size:14px;margin-top:2px}.caption .eyebrow{font-size:8px;letter-spacing:.8px}
+.caption .camera-controls{margin-top:5px;gap:6px}.caption .camera-controls button{min-height:28px;padding:4px 8px;font-size:11px}.caption .camera-controls label{font-size:10px;gap:5px}.caption .camera-controls input{width:72px;height:18px}
+.food-tools{top:110px;left:12px;width:108px;padding:6px}
+.food-tools header{margin:0 2px 6px;display:flex;flex-direction:column;align-items:flex-start;gap:3px}.food-tools header .section-title{margin:0;font-size:8px}.food-tools header .source{font-size:8px}
+.food-tools .brushes{display:grid;grid-template-columns:1.7fr 1fr 1fr;gap:3px}
+.food-tools button,.food-tools button.food-brush{min-height:28px;min-width:0;padding:4px 6px;font-size:11px;line-height:18px}
+.food-tools button.food-brush{grid-column:1/-1}.food-tools button span{font-size:17px;margin-right:5px}
+.food-tools #observe,.food-tools #erase,.food-tools #undo-food{font-size:10px;padding:3px 1px;justify-content:center}
+.toolbar{left:12px;bottom:12px;gap:3px;padding:4px}.toolbar button,.toolbar select{min-height:30px;padding:5px 8px;font-size:12px}
+.food-help{left:calc(100% + 7px);max-width:calc(100vw - 140px)}
+@media(max-width:480px){
+ .caption{left:10px;max-width:calc(100vw - 128px)}.caption strong{font-size:12px}.caption .camera-controls label{font-size:0}.caption .camera-controls input{width:55px}
+ .food-tools{left:10px;top:102px;width:76px;padding:5px}.food-tools button.food-brush{font-size:0;justify-content:center;min-height:31px}.food-tools button span{font-size:20px;margin:0}
+ .food-tools #observe{grid-column:1/-1;font-size:10px}.food-tools #erase{grid-column:1/3}.food-tools #undo-food{grid-column:3}.food-tools #erase,.food-tools #undo-food{font-size:14px}
+ .toolbar{left:10px;bottom:10px}.toolbar button,.toolbar select{padding:5px 7px;font-size:11px}
+}
+aside:has(.eyes-panel.expanded){z-index:6}
+
+/* Fly-eye view shares the live retina canvases; the map remains in room coordinates. */
+.map-caption{display:none}
+.fly-view .caption{position:fixed;z-index:9;top:12px;left:12px;padding:6px 8px;max-width:none}
+.fly-view .caption>#mode,.fly-view .caption>#behavior,.fly-view .camera-controls label,.fly-view #follow{display:none}
+.fly-view .caption .camera-controls{margin:0}
+.fly-view .food-tools,.fly-view .instruments{display:none!important}
+.fly-view aside{position:fixed;inset:0;width:100%;height:100dvh;max-height:none;padding:0;z-index:5;border:0;display:block}
+.fly-view .eyes-panel,.fly-view .eyes-panel.expanded{position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0;padding:62px 16px 12px;border:0;border-radius:0;background:#18201b;box-shadow:none}
+.fly-view #expand-eyes{display:none}
+.fly-view .eyes-header{position:absolute;top:15px;left:calc(50% - 64px);right:18px;margin:0;pointer-events:none}
+.fly-view .eyes-header label{pointer-events:auto}
+.fly-view .eyes-header h2{font-size:18px;margin:0}
+.fly-view .eyes-header .eyebrow{display:none}
+.fly-view .vision-controls{width:min(390px,60vw);margin-bottom:8px}
+.fly-view .eye-view-controls{position:absolute;right:18px;top:62px;display:flex;gap:10px}
+.fly-view .vision-coverage{display:block;margin:8px 0}
+.fly-view .eye-grid{gap:10px}
+.fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 182px);aspect-ratio:auto;border-radius:4px}
+.fly-view .eye-label{font-size:11px;margin-bottom:6px}
+.fly-view .miniroom{display:block!important;position:fixed;z-index:8;right:18px;bottom:18px;width:210px;aspect-ratio:16/9;box-shadow:0 2px 18px #0009}
+.fly-view .map-caption{display:block;position:absolute;left:5px;top:5px;background:#102018cc;padding:2px 5px;color:#e5efdf;font-size:10px;border-radius:3px}
+.fly-view .toolbar{position:fixed;z-index:8}
+.fly-view .room-dock,.fly-view .audio-dock{z-index:9;top:12px;left:auto}
+.fly-view .room-dock{right:132px}.fly-view .audio-dock{right:18px}
+.fly-view #scene{pointer-events:none}
+@media(max-width:600px){
+ .fly-view .eyes-header{left:150px;right:12px;top:19px}.fly-view .eyes-header h2{font-size:14px}
+ .fly-view .room-dock,.fly-view .audio-dock{top:auto;bottom:58px}.fly-view .room-dock{right:84px}.fly-view .audio-dock{right:12px}
+ .fly-view .eyes-panel,.fly-view .eyes-panel.expanded{padding:58px 10px 10px}
+ .fly-view .vision-controls{width:65vw}.fly-view .eye-view-controls{right:10px;top:59px}.fly-view #eye-view-label{display:none}
+ .fly-view .eye-grid{gap:6px}.fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 174px)}
+ .fly-view .miniroom{width:130px;right:12px;bottom:105px}.fly-view .map-caption{font-size:8px}
+ .fly-view .eyes-header label{font-size:0}
+}
+.fly-view .eyes-header label{position:fixed;right:154px;top:68px}
+@media(max-width:600px){.fly-view .eyes-header label{display:none}}
+
+.fly-view #trail,.fly-view #map{display:none}
+
+/* One permanent full-field view, with no mode or crop controls. */
+.miniroom{right:18px;bottom:12px}
+.eyes-header #vision-info{min-width:30px;min-height:30px;padding:3px 7px;font-size:18px}
+.eye-grid canvas{height:140px}
+.fly-view .eyes-header{left:calc(50% - 64px);right:260px;pointer-events:auto}
+.fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 100px)}
+@media(max-height:620px){.eye-grid canvas{height:90px}}
+@media(max-width:600px){.eye-grid canvas{height:95px}.fly-view .eyes-header{left:150px;right:12px}.fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 115px)}}

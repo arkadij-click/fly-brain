@@ -1,0 +1,10 @@
+*.log
+__pycache__/
+.venv/
+node_modules/
+.env
+.env.*
+# Private full source photo; the app uses only the exterior crop.
+assets/window-source.jpg
+# Superseded daylight artwork.
+assets/window-day.png
