@@ -1,0 +1,70 @@
+# A fly in your kitchen
+
+The blue clock in the photograph is overlaid with real `Europe/Berlin` time (24-hour HH:mm); the HUD also shows this time. It updates by real minutes, including during pause and at every simulation speed. The eye-view texture and minimap use the same updated clock. The photographed apple on the window ledge is a built-in scent source at its actual photo location, with an apple-skin landing patch and a feeding target. `node verify_room.js` checks time-zone/DST formatting and apple landing/feeding.
+
+The game fits into one viewport: the playfield and tools fill the left side; eye views, body/brain activity, and recent events stay on the right. Food, environment, camera, audio, pause, and speed controls remain visible without page scrolling. The following camera fills the playfield while preserving image proportions; placement and room overview show the entire photograph. Controls compress at narrow and short viewport sizes.
+
+Flight uses smoothed angular velocity, banking, an accelerating launch, damped height control, small cruise variations, and a braking landing approach. The drawing interpolates fixed simulation updates, integrates multiple wing positions into a motion-blurred wingbeat, tucks legs during cruise, extends them on approach, and briefly compresses the body on touchdown. The illustration includes wing veins and jointed legs. These are authored visual/kinematic approximations. `node verify_flight.js` checks continuous takeoff/escape poses, bounded turns/altitude, landing cycles, and interpolation.
+
+Run `powershell -ExecutionPolicy Bypass -File .\launch.ps1` from this folder, then visit http://127.0.0.1:8766. The server is local to your computer. The existing explorer and Tetris demo are separate.
+
+The scene uses your Kitchen SnapTask photograph. An autonomous fly follows scent fields, approaches authored surfaces, lands, walks, feeds, grooms, rests, and takes off. It responds to nearby rapid pointer movement and the Shoo button. Place food on the highlighted counter, window ledge, or table. Toggle the room map, flight trail, and optional synthetic wing buzz. Light and wind affect sensory inputs and movement. Pause freezes simulation time; Space pauses, S startles. Reset restores seed 783.
+
+## What runs
+
+`build_brain.py` reads the local FAFB v783 graph (139,255 neurons). Seven input channels use actual annotated left/right olfactory, visual, mechanosensory, and bilateral gustatory neurons. Edges are weighted by synapse count, with GABA assigned a negative sign and other transmitters a positive sign, then normalized by total absolute incoming weight. This sign convention is a simplification, especially for glutamate. The linear model is `x[t+1] = 0.65*x[t] + 0.35*(W*x[t] + B*u[t])`.
+
+The browser convolves a 48-step impulse response at 20 Hz. This is a truncated linear model, not full spiking dynamics; the lag and time scale are chosen for this demonstration. Mean activity of left/right descending neurons modulates the authored steering controller. The view displays 640 actual annotated neuron coordinates and their modeled activity, not invented anatomy or measured activity. Hunger, behavior transitions, attraction, escape, landing, and flight mechanics are authored rules. No behavior policy was trained or validated against a real fly.
+
+The following camera uses the kitchen photograph with normalized perspective coordinates; the eye renderer uses a separate, closed approximate 3D kitchen aligned to those landing anchors. Size, flight speed, sound, and energy are illustrative. The FAFB source is an adult female *Drosophila* fruit fly, not a housefly. Neither the connectome alone nor this simulation reconstructs a living animal.
+
+Sources: [FlyWire](https://flywire.ai/), [Codex FAFB](https://codex.flywire.ai/?dataset=fafb). `brain.json` stores input/output root IDs, model assumptions, and the SHA-256 of the source graph. Rebuild with `..\.venv\Scripts\python.exe build_brain.py` (NumPy and SciPy in the existing environment).
+
+Run `node verify.js` for deterministic behavioral checks. Serve via HTTP; direct file opening cannot fetch the brain model.
+
+## Follow camera and eye views
+
+The main camera follows the fly with smooth pan and a default 3× zoom. Adjust Приближение (1.5–6×), or toggle Следить за мухой for the full room. The minimap shows the crop and the fly. Pointer interactions are mapped back into room coordinates at every zoom level.
+
+The eye model now uses 1,709 measured, smoothed ommatidial viewing vectors (857 left / 852 right) from the female 20240701 microCT specimen in Zhao et al. (Nature, 2025). `eye-map.json` records source URL and SHA-256 of the original RData. Source repository: https://github.com/reiserlab/eyemap_T4; its GPL license is retained in `eye-data-license.txt`. Directions are transformed from the authors' +y-left convention to this simulator's +yaw-right convention. Receptor positions are nonuniform, not tied to display resolution. The angular windows show the main lateral eye fields; some near-pole receptors fall beyond the horizontal display window but still contribute to sensory signals.
+
+At the equator the combined visual field is approximately 310 degrees, with less than 20 degrees frontal overlap and an approximately 50 degree posterior blind region. This is not full 360-degree vision, and boundaries vary with elevation. The measured field reaches near zenith and roughly -70 degrees elevation. Coordinated retinal movements can change the field; they are not simulated.
+
+The old photograph-plane projection has been removed. `room-geometry.js` defines a closed, authored room in normalized room-width units: floor, four walls, ceiling, a ceiling light, the traced counter/ledge/table surfaces and occluding vessels/food. The simulation's photo coordinates remain landing anchors; altitude is measured above the local landing surface. Rays select the nearest surface. Walls use different photograph regions; the ceiling and hidden sides are authored approximations rather than a calibrated reconstruction. Daylight, the actual clock and placed food still update the shared photo texture. The renderer's depth is never supplied to the controller.
+
+`vision.js` samples this geometry at each measured optical axis using nine normalized angular cone quadrature samples for an 8.23-degree FWHM aperture. This is the nearly dark-adapted R1–R6 empirical value, not a fitted light-adapted optical model. Capture is decoded to linear RGB before angular integration and room-light scaling. Outer capture is a pooled broad visible-band RGB proxy, not six independently reconstructed R1–R6 cells or calibrated photon capture. Eye positions share a central origin; near-field facet parallax and retinal movements are not simulated.
+
+`visual-circuit.js` implements the supplied review's prototype: fast capture filtering, a 0.6-second background estimate, log contrast, and signed delayed correlation between real spherical neighbours. Separate ON and OFF branches are retained. The fixed seeded pale/yellow mosaic uses one blue or green R8 proxy per column. R7 UV and polarization remain unavailable; no red-to-UV substitution, calibrated photon noise, or invented spectral radiance is used. The one display interpolates measured directions smoothly and combines tonic brightness, conditional colour samples and motion salience. It is a human visualization, not a claim to recover a fly's subjective experience. Only measured-eye field boundaries are faded; there are no unknown-photo horizon strips or thresholded receptor cutouts.
+
+The parameter table exported as `FlyVisualCircuit.parameters` records values, units, provenance and empirical/engineering status. The neurological solver uses substeps up to 1 ms; capture follows the existing 60-Hz simulation and the display targets 30 Hz. Those are software settings, not a biological FPS. State-dependent delay constants, RGB weights, scene dimensions, display gains and response mapping to the two existing connectome input channels are chosen engineering approximations, not fitted physiology. Food seeking remains authored scent-driven behaviour. See the [preserved research review](../research/Drosophila_vision_research_and_simulator_RU.pdf), especially pp. 21–28, for the architecture and distinctions adopted here.
+
+Run `node verify_vision.js`, `node verify_eye_display.js` and `node verify_visual_circuit.js`. Checks cover 131,040 full-room rays across positions/heights/headings/bank, floor/wall/ceiling coverage, vessel occlusion, measured eye geometry, smooth display and stationary input, signed moving-grating direction, reverse-phi correlation, adaptation and timestep convergence. Camera checks remain in `verify_camera.js`.
+
+Primary sources:
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC12488493/ — eye geometry and motion organization.
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC3054003/ — angular acceptance and photoreceptor physiology.
+- https://pmc.ncbi.nlm.nih.gov/articles/PMC7588446/ — spectral sensitivity.
+## Food toolbar
+
+Food & scraps sits below the room controls. Choose Apple piece, Banana peel, Strawberry, Crumbs, or Juice drop, then click a highlighted counter, window ledge, or table. Choosing a placement brush keeps the current camera framing and freezes its follow pan while placing. Use Follow or Zoom explicitly to change the view. Placement does not turn on the surface map; Map alone controls guides and labels. Each click places one item and returns the normal cursor; Cursor or Escape also cancels placement. Remove deletes clicked user-added items; Undo removes the last remaining placement. Up to 20 items can be added; the original photographed food sources remain. Reset clears user-added items.
+
+Each food has an authored scent strength and feeding rate; these are illustrative model values. Added objects are drawn in the room and composited into the photograph sampled by the eye views. Removing the fly's current food retargets it. `node verify_food.js` checks types, surface rejection, scents, removal, undo, and capacity.
+
+## Music and sound
+
+Click Включить аудио to start the original procedural 78 BPM soundtrack: soft sustained chords, a plucked melody, bass, and a short echo. Music plays at a constant tempo independently of simulation speed. Separate music/effects checkboxes and volume controls allow music only, effects only, or both. The soundscape includes a quiet room/wind texture, a stereo wing buzz following the fly's speed and position, and brief effects for takeoff, landing, escape, feeding, grooming, and new food. All sound is synthesized locally using Web Audio; there are no external audio downloads. Pause fades audio out and stops scheduled notes; resume continues without an accumulated burst. Audio remains off until activated by a click after loading the page. Open `audio-check.html` for OfflineAudioContext waveform, mute, and clipping checks.
+
+
+## Floating game controls
+
+The kitchen canvas fills the viewport. Translucent food and simulation toolbars sit at the lower left; Follow and zoom sit beneath the status at the upper left. Room and Sound open compact panels without resizing the scene, close when clicking outside, and close with Escape. The eye views remain at the upper right. Fly & brain expands the closeup, vitals, brain activity, senses, events and source note. Food icons have accessible names and tooltips; placement exits after one item; no instruction overlay covers the kitchen. All canvas coordinates continue to use the same camera transform. The page itself does not scroll; expanded detailed instrumentation can scroll within its own panel on a small screen.
+
+Placed food uses cached high-resolution canvas sprites with organic contours, shaded cut faces and peel thickness, deterministic surface grain, bruises, seeds and crumb pores, soft cast/contact shadows, and transparent juice edges. Location selects a stable appearance variant; room light shades the food consistently in the scene and eye texture.
+
+The surface map is traced in normalized coordinates against the kitchen photograph: the counter ends at its front lip, the window ledge has separate back/front edges, and the table follows its visible curved outline. Food placement and fly walking use these same boundaries. Counter-fruit and plate-crumb markers are aligned with the photographed sources; resting destinations lie inside the corrected ledge. `verify_room.js` checks real surface points and rejects nearby appliance fronts and space outside the table.
+
+The daytime exterior uses the user's newer SnapTask photograph in assets/window-exterior.jpg. daylight.js maps clean exterior regions from its three lower glass panes into the original kitchen window with a perspective mesh. Kitchen surfaces, frames, sill objects, and the night photograph retain their existing positions. The composite is shared by the scene, minimap, and eye texture.
+
+Use the Глазами мухи button or V to switch from the following camera to a viewport-filling live view of both eyes. The room minimap remains visible with the fly's position and heading, without the camera crop rectangle. За мухой, V, or Escape returns to the following camera. The unified vision view, room and sound settings, pause, speed, and reset remain available; scene placement tools stay in camera mode.
+
+Vision capture, neural substeps and eye interpolation run in a dedicated Web Worker. The UI consumes the latest completed eye frames and sensory channels asynchronously. One in-flight job and one coalesced latest pose bound the queue; elapsed simulation time is retained for neural integration. Under load the optical capture cadence adapts to throughput, so intermediate poses can be skipped (software sampling, not biological FPS). Stationary optical capture is reused while adaptation continues; texture, food, light, position and rotation invalidate the cache. Dense sRGB transfer interpolation and reusable sample/canvas buffers reduce allocation costs. `node verify_async_vision.js` checks queue bounds, time preservation, texture invalidation and reset cleanup.
