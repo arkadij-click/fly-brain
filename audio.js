@@ -13,7 +13,7 @@ function score(step){const chord=chords[Math.floor(step/16)%4],beat=60/78/2;
 }
 class KitchenAudio{
  constructor(){this.context=null;this.enabled=false;this.music=true;this.effects=true;this.musicVolume=.45;this.effectsVolume=.55;this.running=true;this.previous=null;this.step=0;this.next=0;this.voices=new Set();}
- async enable(){if(!this.context){const C=root.AudioContext||root.webkitAudioContext;if(!C)throw new Error('Этот браузер не поддерживает аудио');this.context=new C();this.build();}await this.context.resume();this.enabled=true;this.next=this.context.currentTime+.08;this.step=0;this.mix();}
+ async enable(){if(!this.context){const C=root.AudioContext||root.webkitAudioContext;if(!C)throw new Error('This browser does not support audio');this.context=new C();this.build();}await this.context.resume();this.enabled=true;this.next=this.context.currentTime+.08;this.step=0;this.mix();}
  build(){const c=this.context;this.master=c.createGain();this.master.gain.value=0;const limiter=c.createDynamicsCompressor();limiter.threshold.value=-15;limiter.knee.value=12;limiter.ratio.value=6;this.master.connect(limiter).connect(c.destination);
   this.musicBus=c.createGain();this.effectsBus=c.createGain();this.musicBus.connect(this.master);this.effectsBus.connect(this.master);
   this.delay=c.createDelay(1);this.delay.delayTime.value=60/78*.75;const feedback=c.createGain();feedback.gain.value=.23;this.wet=c.createGain();this.wet.gain.value=.16;this.musicBus.connect(this.delay);this.delay.connect(feedback).connect(this.delay);this.delay.connect(this.wet).connect(this.master);

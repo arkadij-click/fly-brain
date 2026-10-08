@@ -9,7 +9,7 @@ The app is static HTML, JavaScript and media. No build step, backend, accounts o
 ## Play
 
 - Choose a food and click a counter, table or window ledge. One click places it and restores the normal cursor; Escape cancels placement.
-- **Follow** toggles the following camera; **Глазами мухи** or **V** switches to full-screen eye views with a position map.
+- **Follow** toggles the following camera; **Fly view** or **V** switches to full-screen eye views with a position map.
 - **Shoo** or **S** startles the fly. **Space** pauses. Room and Sound open environment and audio controls.
 - Music and sound use Web Audio and require a user click to start.
 
