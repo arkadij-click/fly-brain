@@ -102,10 +102,12 @@ if(matchMedia('(max-width:760px)').matches){document.body.classList.add('panel-h
 function instrumentTarget(){if(followTarget==='main')return sim;const m=colony.find(followTarget);return m&&m.senseInputs?m:sim;}
 function setFollowTarget(id){followTarget=id;$('follow-target').value=id;if(!following&&!flyView)$('follow').click();previousPointer=null;}
 function pickMember(p){
- let best=null,bd=Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625);if(bd<.07)best='main';else bd=Infinity;
+ // A tight hit box: clicking a fly means "follow it", landing merely NEAR one
+ // falls through to the shoo behavior below.
+ let best=null,bd=Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625);if(bd<.05)best='main';else bd=Infinity;
  const consider=(m,r)=>{const d=Kitchen.distance(p,m);if(d<r&&d<bd){bd=d;best=m.id;}};
- for(const a of colony.adults)consider(a,.07);
- for(const m of colony.larvae)consider(m,.045);
+ for(const a of colony.adults)consider(a,.055);
+ for(const m of colony.larvae)consider(m,.035);
  return best;}
 function snapshotColony(){for(const m of colony.larvae)colonyPrevious.set(m.id,{kind:'maggot',x:m.x,y:m.y,heading:m.heading});for(const f of colony.adults)colonyPrevious.set(f.id,f.pose());for(const id of colonyPrevious.keys())if(!colony.find(id))colonyPrevious.delete(id);}
 function collectColony(t){const out=new Map();
@@ -192,7 +194,7 @@ canvas.addEventListener('pointerdown',e=>{pinch.pointers.set(e.pointerId,[e.clie
 canvas.addEventListener('pointermove',e=>{if(!pinch.pointers.has(e.pointerId))return;pinch.pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pinch.pointers.size===2&&pinch.startDist>0){const [[ax,ay],[bx,by]]=[...pinch.pointers.values()];const d=Math.hypot(ax-bx,ay-by);if(d>10){$('zoom').value=Math.max(1,Math.min(6,pinch.startZoom*d/pinch.startDist));pinch.moved=true;previousPointer=null;}}});
 const liftPinch=e=>{pinch.pointers.delete(e.pointerId);if(pinch.pointers.size<2)pinch.startDist=0;};
 canvas.addEventListener('pointerup',liftPinch);canvas.addEventListener('pointercancel',liftPinch);
-canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}}else if(placing){if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{const picked=pickMember(p);colony.scare(p.x,p.y);if(picked)setFollowTarget(picked);else scareWithSound(p.x,p.y,Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.10);}};
+canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}}else if(placing){if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{const picked=pickMember(p);if(picked)setFollowTarget(picked);else{colony.scare(p.x,p.y);scareWithSound(p.x,p.y,Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.10);}}};
 let previousPointer=null,lastScare=-10;canvas.onpointermove=e=>{if(flyView||pinch.pointers.size>1)return;let p=point(e),now=performance.now()/1000;pointerWorld=p;if(previousPointer&&!paused&&!placing){let velocity=Math.hypot(p.x-previousPointer.x,p.y-previousPointer.y)/Math.max(.01,now-previousPointer.time);if(velocity>.65&&Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.07&&sim.time-lastScare>2){sim.scare(p.x,p.y);lastScare=sim.time;}}previousPointer={...p,time:now};};canvas.onpointerleave=()=>{previousPointer=null;pointerWorld=null;};
 function clearTextSelection(){const selection=window.getSelection();if(selection&&!selection.isCollapsed)selection.removeAllRanges();}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('dialog,input[type=text],textarea,[contenteditable=true]'))clearTextSelection();});
