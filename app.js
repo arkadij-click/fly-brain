@@ -176,7 +176,15 @@ $('load-game').onclick=()=>log(loadGame()?'Save loaded — welcome back.':'No sa
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame(false);});
 window.addEventListener('pagehide',()=>saveGame(false));
 $('reset').onclick=()=>{FlyStorage.clear(localStorage);sim=new Kitchen.Simulation();wireLaying();colony=new FlyLifecycle.Colony();wireLaying();colonyPrevious.clear();visibleColony=new Map();followTarget='main';followSig='';$('follow-target').value='main';history=[];activity=[];brainTime=accumulator=0;previousPose=visiblePose=FlightArt.pose(sim);sim.light=Number($('light').value);sim.wind=Number($('wind').value);refreshFoodTexture();selectTool();retina?.dispose();retina=new FlyVision.AsyncRetina(eyeMap);sampleVision(0);neuralStep();log('A fresh kitchen — the old save was cleared.');};$('light').oninput=()=>{sim.light=Number($('light').value);sampleVision(0);};$('wind').oninput=()=>sim.wind=Number($('wind').value);
-$('sound').onclick=async()=>{try{if(soundtrack.enabled)soundtrack.disable();else await soundtrack.enable();$('sound').textContent=soundtrack.enabled?'♫ Audio':'Audio';$('sound').classList.toggle('active',soundtrack.enabled);$('sound').setAttribute('aria-pressed',String(soundtrack.enabled));if(!soundtrack.enabled)$('sound-status').textContent='Audio off';}catch(e){$('sound-status').textContent=e.message;}};
+async function toggleAudio(){
+ try{
+  if(soundtrack.enabled)soundtrack.disable();else await soundtrack.enable();
+  $('sound').textContent=soundtrack.enabled?'♫ Audio':'Audio';$('sound').classList.toggle('active',soundtrack.enabled);$('sound').setAttribute('aria-pressed',String(soundtrack.enabled));
+  $('sound-toggle').classList.toggle('active',soundtrack.enabled);$('sound-toggle').setAttribute('aria-pressed',String(soundtrack.enabled));
+  if(!soundtrack.enabled)$('sound-status').textContent='Audio off';
+ }catch(e){$('sound-status').textContent=e.message;}
+}
+$('sound').onclick=()=>toggleAudio();$('sound-toggle').onclick=()=>toggleAudio();
 $('music-enabled').onchange=()=>{soundtrack.music=$('music-enabled').checked;soundtrack.mix();};$('effects-enabled').onchange=()=>{soundtrack.effects=$('effects-enabled').checked;soundtrack.mix();};$('music-volume').oninput=()=>{soundtrack.musicVolume=Number($('music-volume').value);soundtrack.mix();};$('effects-volume').oninput=()=>{soundtrack.effectsVolume=Number($('effects-volume').value);soundtrack.mix();};
 function point(e){const r=canvas.getBoundingClientRect(),w=Math.min(r.width,r.height*16/9),h=w*9/16;return camera.screenToWorld((e.clientX-r.left-sceneCenter(r.width,r.height)[0])/w+.5,(e.clientY-r.top-sceneCenter(r.width,r.height)[1])/h+.5);}
 // Pinch with two fingers to set the follow zoom; a pinch never counts as a tap.
@@ -200,7 +208,7 @@ const settingDocks=[...document.querySelectorAll('.room-dock,.audio-dock')];
 settingDocks.forEach(dock=>dock.addEventListener('toggle',()=>{if(dock.open)settingDocks.forEach(other=>{if(other!==dock)other.open=false;});}));
 document.addEventListener('pointerdown',e=>settingDocks.forEach(dock=>{if(!dock.contains(e.target))dock.open=false;}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){settingDocks.forEach(dock=>dock.open=false);}});
-for(const [id,title] of [['pause','Pause / resume · Space'],['scare','Startle the followed insect · S'],['trail','Show flight trail'],['map','Show landing surfaces and scents'],['panel-toggle','Hide or show the instrument panel · P'],['save-game','Save the game now (auto-saves every few seconds)'],['load-game','Load the last save'],['eye-toggle','Render the compound-eye views (heavier) · off by default'],['follow','Follow the selected insect / view full room'],['observe','Normal cursor · Done or Escape exits placement']])$(id).title=title;
+for(const [id,title] of [['pause','Pause / resume · Space'],['scare','Startle the followed insect · S'],['trail','Show flight trail'],['map','Show landing surfaces and scents'],['panel-toggle','Hide or show the instrument panel · P'],['save-game','Save the game now (auto-saves every few seconds)'],['load-game','Load the last save'],['sound-toggle','Music and sounds on/off'],['eye-toggle','Render the compound-eye views (heavier) · off by default'],['follow','Follow the selected insect / view full room'],['observe','Normal cursor · Done or Escape exits placement']])$(id).title=title;
   $('expand-eyes').onclick=()=>{const expanded=document.querySelector('.eyes-panel').classList.toggle('expanded');$('expand-eyes').setAttribute('aria-pressed',String(expanded));$('expand-eyes').title=expanded?'Collapse eye views':'Expand eye views';renderEyes();};
 $('vision-info').onclick=()=> $('vision-details').showModal();
 $('vision-close').onclick=()=> $('vision-details').close();
