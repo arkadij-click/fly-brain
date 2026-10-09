@@ -9,7 +9,8 @@ const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11
 const surfaces=[
  {name:'Counter',poly:[[0,.566],[.283,.490],[.575,.460],[.576,.496],[0,.704]]},
  {name:'Window ledge',poly:[[.554,.420],[1,.512],[1,.618],[.554,.506]]},
- {name:'Radiator',poly:[[.59,.605],[1,.70],[1,1],[.59,1]]},
+ {name:'Radiator top',poly:[[.59,.605],[1,.70],[1,.765],[.59,.685]]},
+ {name:'Radiator',food:false,poly:[[.59,.685],[1,.765],[1,1],[.59,1]]},
  {name:'Top shelf',poly:[[.005,.165],[.43,.165],[.43,.23],[.005,.23]]},
  {name:'Freezer top',poly:[[.44,.53],[.55,.585],[.55,.62],[.44,.565]]},
  {name:'Trolley',poly:[[.59,.615],[.66,.615],[.66,.70],[.59,.70]]},
@@ -23,7 +24,7 @@ class Simulation{
  note(message){this.events.unshift({time:this.time,message});this.events.length=Math.min(3,this.events.length);}
  transition(mode){this.mode=mode;this.age=0;}
  choose(){let best=-Infinity;for(const f of this.foods){const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)+this.random()*.18;if(score>best){best=score;this.target=f;}}this.destination={...this.target};if(this.hunger<.28&&this.random()<.75){const x=.58+this.random()*.32;this.destination={x,y:.448+(x-.554)*.317};this.target=null;}}
- addFood(x,y,kind='apple'){const type=foodTypes[kind],p={x,y};if(!type||!Number.isFinite(x)||!Number.isFinite(y)||x<.02||x>.98||y<.02||y>.99||!surfaces.some(s=>inside(p,s.poly)))return false;this.foods.push({...p,...type,kind,placed:true,id:'food-'+this.time+'-'+this.foods.length});this.foodsVersion=(this.foodsVersion||0)+1;this.choose();if(this.mode!=='flight')this.takeoff();this.note(type.name+' placed — a new scent.');return true;}
+ addFood(x,y,kind='apple'){const type=foodTypes[kind],p={x,y};const surf=surfaces.find(s=>inside(p,s.poly));if(!type||!surf||surf.food===false||!Number.isFinite(x)||!Number.isFinite(y)||x<.02||x>.98||y<.02||y>.99)return false;this.foods.push({...p,...type,kind,placed:true,id:'food-'+this.time+'-'+this.foods.length});this.foodsVersion=(this.foodsVersion||0)+1;this.choose();if(this.mode!=='flight')this.takeoff();this.note(type.name+' placed — a new scent.');return true;}
  removeFood(food){const index=this.foods.indexOf(food);if(index<0||!food.placed)return false;this.foods.splice(index,1);this.foodsVersion=(this.foodsVersion||0)+1;if(this.target===food){this.choose();if(this.mode!=='flight')this.takeoff();}this.note(food.name+' removed.');return true;}
  undoFood(){return this.removeFood([...this.foods].reverse().find(f=>f.placed));}
  takeoff(){const airborne=this.mode==='flight';this.transition('flight');if(!airborne){this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;}this.landingBlend=0;}
