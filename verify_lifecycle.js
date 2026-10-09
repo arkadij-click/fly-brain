@@ -83,4 +83,21 @@ wait.larvae.splice(0,1);
 wait.update(1/60,nursery,1.1);
 assert(wait.eggs.length===0&&wait.larvae.length===12,'the waiting egg hatches once space frees');
 
+// Flies scatter: a food already mobbed loses appeal, so equal flies split up.
+const crowdRoom={foods:[{x:.4,y:.5,strength:1.5,name:'left dish'},{x:.6,y:.5,strength:1.5,name:'right dish'}],flies:[]};
+let splits=0;
+for(let t=0;t<10;t++){
+ const a=new AdultFly(.5,.5,0,'fly-p'+t),b=new AdultFly(.5,.5,0,'fly-q'+t);
+ b.setSeed(a.seed); // identical taste, identical everything
+ a.choose(crowdRoom);crowdRoom.flies=[a];
+ b.choose(crowdRoom);crowdRoom.flies=[];
+ if(a.target!==b.target)splits++;
+}
+assert(splits>=6,'crowded foods lose appeal: only '+splits+'/10 identical pairs split');
+const spreadRoom={foods:[{x:.4,y:.5,strength:1.5},{x:.6,y:.5,strength:1.5}],flies:[]};
+const picks=new Set();
+for(let i=0;i<4;i++){const f=new AdultFly(.5,.5,0,'fly-s'+i);f.choose(spreadRoom);picks.add(f.target&&f.target.x);}
+assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
+assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
+
 console.log(JSON.stringify({passed:true,clutches,eggsHatched:colony.clutches,adults:colony.adults.length,femaleClutches}));

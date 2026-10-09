@@ -82,20 +82,25 @@ class AdultFly{
  }
  choose(room){
   // Bored, well-fed flies roam to a random spot instead of another meal.
-  if(this.hunger<.34&&Math.random()<this.wanderChance){
+  if(this.hunger<.4&&Math.random()<this.wanderChance){
    const poly=surfaces[Math.floor(Math.random()*surfaces.length)].poly,xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
    for(let i=0;i<24;i++){
     const x=Math.min(...xs)+Math.random()*(Math.max(...xs)-Math.min(...xs)),y=Math.min(...ys)+Math.random()*(Math.max(...ys)-Math.min(...ys));
     if(inside({x,y},poly)){this.destination={x,y};this.target=null;return;}
    }
   }
-  let best=-Infinity;
-  for(const f of room.foods){
-   const taste=1+Math.sin(this.seed*999+f.x*137+f.y*61)*.45;
-   const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)*taste+Math.random()*.18;
-   if(score>best){best=score;this.target=f;}
+  // Crowding: a food already mobbed by others loses its appeal, so the swarm
+  // spreads out over every scent instead of piling onto the nearest one.
+  const crowd=new Map();
+  for(const other of room.flies||[])if(other!==this&&other.target){const i=room.foods.indexOf(other.target);if(i>=0)crowd.set(i,(crowd.get(i)||0)+1);}
+  let best=-Infinity,bestIndex=-1;
+  for(let i=0;i<room.foods.length;i++){
+   const f=room.foods[i];
+   const taste=1+Math.sin(this.seed*555+i*1723)*.9;
+   const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)*taste/(1+(crowd.get(i)||0)*4)+Math.random()*.18;
+   if(score>best){best=score;bestIndex=i;}
   }
-  if(this.target){ // ring around the food instead of one shared landing point
+  if(bestIndex>=0){this.target=room.foods[bestIndex]; // ring around the food instead of one shared landing point
    this.destination={x:this.target.x+Math.cos(this.landingAngle)*this.landingRing,y:this.target.y+Math.sin(this.landingAngle)*this.landingRing};
   }else{const x=.58+Math.random()*.32;this.destination={x,y:.448+(x-.554)*.317};}
  }
@@ -148,14 +153,15 @@ class Colony{
  nextId(prefix){return prefix+'-'+(++this.counter);}
  layClutch(x,y,time){if(this.adults.length>=MAX_ADULTS||this.eggs.length>=MAX_EGGS)return 0;const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Math.min(n,MAX_EGGS-this.eggs.length);for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,r=.004+Math.random()*.014;this.eggs.push(new Egg(x+Math.cos(a)*r,y+Math.sin(a)*r/.5625,time));}this.clutches++;return count;}
  update(dt,room,time){this.time=(time??this.time+dt);
+  const env={foods:room.foods||[],flies:[...(room.flies||[]),...this.adults,...(room.main?[room.main]:[])]};
   const events=[];
   for(let i=this.eggs.length-1;i>=0;i--){if(this.larvae.length>=MAX_LARVAE)break;if(this.eggs[i].update(dt)==='hatch'){const egg=this.eggs.splice(i,1)[0];this.larvae.push(new Maggot(egg.x,egg.y,this.time,this.nextId('maggot')));events.push('An egg hatched into a maggot.');}}
-  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];if(m.update(dt,room)==='pupate'){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id));events.push(m.name+' pupated — the metamorphosis begins.');}}
+  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];if(m.update(dt,env)==='pupate'){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id));events.push(m.name+' pupated — the metamorphosis begins.');}}
   for(let i=this.pupae.length-1;i>=0;i--){const p=this.pupae[i];if(p.update(dt)==='emerge'){this.pupae.splice(i,1);const fly=new AdultFly(p.x,p.y,this.time,p.id);
    // Nothing in this kitchen dies: a mature female simply starts a clutch of her own.
    fly.onLay=(x,y)=>{const n=this.layClutch(x,y,this.time);if(n&&this.onClutch)this.onClutch(fly,n);};
    this.adults.push(fly);events.push(fly.name+' ('+(fly.sex==='female'?'♀':'♂')+') emerged from the pupa and took off!');}}
-  for(const fly of this.adults)fly.update(dt,room);
+  for(const fly of this.adults)fly.update(dt,env);
   return events;
  }
  selectable(){return [...this.larvae,...this.adults];}
