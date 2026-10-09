@@ -206,3 +206,58 @@ aside:has(.eyes-panel.expanded){z-index:6}
 .fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 100px)}
 @media(max-height:620px){.eye-grid canvas{height:90px}}
 @media(max-width:600px){.eye-grid canvas{height:95px}.fly-view .eyes-header{left:150px;right:12px}.fly-view .eye-grid canvas,.fly-view .eyes-panel.expanded .eye-grid canvas{height:calc(100dvh - 115px)}}
+
+/* The instrument column is a collapsible panel, and the room map never runs beneath it. */
+.scene{inset:0 340px 0 0;width:auto;height:auto}
+.miniroom{right:18px}
+body.panel-hidden .scene{inset:0}
+body.panel-hidden:not(.fly-view) aside{display:none}
+body.panel-hidden .miniroom{right:18px}
+#panel-toggle.active{color:#b5e2c4;border-color:#b5e2c488}
+@media(max-width:1000px){.scene{inset:0 316px 0 0}}
+@media(max-width:760px){.scene{inset:0 286px 0 0}}
+@media(max-width:480px){.scene{inset:0}}
+
+/* Touch-first: safe areas, iOS glass, tap targets, and a bottom-sheet panel. */
+.glass,.eyes-panel{-webkit-backdrop-filter:blur(12px)}
+button,select,summary,input[type=range]{touch-action:manipulation}
+body{-webkit-touch-callout:none}
+html,body{overscroll-behavior:none}
+body>header{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+.caption{left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top))}
+.toolbar{left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom))}
+.food-tools{left:max(12px,env(safe-area-inset-left))}
+.audio-dock{right:max(12px,env(safe-area-inset-right))}
+aside{right:max(18px,env(safe-area-inset-right))}
+@media(max-width:760px){
+ .toolbar button,.toolbar select{min-height:38px;padding:7px 10px}
+ .camera-controls button{min-height:36px}
+ input[type=range]{height:28px}
+}
+@media(max-width:480px){
+ /* The instruments open as a bottom sheet over the map; Panel (or P) toggles it. */
+ body:not(.panel-hidden):not(.fly-view) aside{
+  position:fixed;left:8px;right:8px;top:auto;bottom:max(8px,env(safe-area-inset-bottom));
+  width:auto;max-width:none;max-height:58dvh;z-index:7;border-radius:14px;
+  box-shadow:0 10px 34px #000b;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+ }
+ .caption{max-width:calc(100vw - 24px)}
+ .caption .camera-controls{flex-wrap:wrap}
+ .toolbar{max-width:calc(100vw - 24px);flex-wrap:wrap}
+}
+
+/* Camera, map, room and sound live in the side panel; the map stays clean. */
+aside{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#63877466 transparent}
+.panel-sec{flex:none;border:1px solid #e6f4df25;border-radius:10px;background:var(--glass);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.caption{position:static;max-width:none;width:auto;padding:10px 12px}
+.caption .camera-controls{position:static;margin:9px 0 0;padding:0;border:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;flex-wrap:wrap;gap:8px}
+.caption .camera-controls input{width:105px}
+.caption .camera-controls label{font-size:11px}
+aside .miniroom{position:static;width:100%;opacity:1;border-color:#dceac755}
+aside .room-dock,aside .audio-dock{position:static;left:auto;right:auto;top:auto;transform:none;width:100%}
+aside .room-controls{width:100%}
+aside .audio-dock[open]{width:100%}
+.fly-view aside{overflow:visible}
+.fly-view .panel-map{display:none}
+.fly-view aside .miniroom{position:fixed;right:18px;bottom:18px;width:210px}
+@media(max-width:1000px){.caption .camera-controls input{width:85px}}
