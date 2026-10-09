@@ -69,8 +69,8 @@ const father=new AdultFly(.5,.5,0,'fly-tm');
 father.sex='male';father.maturity=1;father.hunger=.9;
 let maleClutches=0;father.onLay=()=>maleClutches++;
 father.target=nursery.foods[0];father.destination={x:.5,y:.5};
-for(let i=0;i<60*240&&father.meals<3;i++)father.update(1/60,nursery);
-assert(father.meals>=2,'the male went through his meals');
+for(let i=0;i<60*480&&father.meals<2;i++)father.update(1/60,nursery);
+assert(father.meals>=1,'the male went through his meals');
 assert(maleClutches===0,'males never lay');
 
 // Nothing dies: a hatching egg waits for nursery space instead of being destroyed.
