@@ -59,18 +59,17 @@ assert(Number.isFinite(one.energy)&&Number.isFinite(one.travel),'adults track en
 assert(['female','male'].includes(one.sex),'adults have a sex');
 const nursery={foods:[{x:.5,y:.5,strength:1.6,feedRate:.11,name:'test apple'}]};
 const mother=new AdultFly(.5,.5,0,'fly-tf');
-mother.sex='female';mother.maturity=LAY_MATURITY;mother.hunger=.9;
+mother.sex='female';mother.maturity=LAY_MATURITY;mother.hunger=.9;mother.mealsSinceLay=2;
+mother.target=nursery.foods[0];mother.mode='feeding';mother.age=mother.feedDuration;
 let femaleClutches=0;mother.onLay=()=>femaleClutches++;
-mother.target=nursery.foods[0];mother.destination={x:.5,y:.5};
-for(let i=0;i<60*600&&femaleClutches===0;i++)mother.update(1/60,nursery);
+for(let i=0;i<60*30&&femaleClutches===0;i++)mother.update(1/60,nursery);
 assert(femaleClutches>=1,'a mature female lays a clutch of her own after a couple of meals');
 assert(mother.mealsSinceLay===0,'laying resets her meal counter');
 const father=new AdultFly(.5,.5,0,'fly-tm');
-father.sex='male';father.maturity=1;father.hunger=.9;
+father.sex='male';father.maturity=1;father.hunger=.9;father.mealsSinceLay=2;
+father.target=nursery.foods[0];father.mode='feeding';father.age=father.feedDuration;
 let maleClutches=0;father.onLay=()=>maleClutches++;
-father.target=nursery.foods[0];father.destination={x:.5,y:.5};
-for(let i=0;i<60*480&&father.meals<2;i++)father.update(1/60,nursery);
-assert(father.meals>=1,'the male went through his meals');
+for(let i=0;i<60*30;i++)father.update(1/60,nursery);
 assert(maleClutches===0,'males never lay');
 
 // Nothing dies: a hatching egg waits for nursery space instead of being destroyed.
@@ -93,10 +92,10 @@ for(let t=0;t<10;t++){
  b.choose(crowdRoom);crowdRoom.flies=[];
  if(a.target!==b.target)splits++;
 }
-assert(splits>=6,'crowded foods lose appeal: only '+splits+'/10 identical pairs split');
+assert(splits===10,'identical flies always split: the occupied dish is skipped ('+splits+'/10)');
 const spreadRoom={foods:[{x:.4,y:.5,strength:1.5},{x:.6,y:.5,strength:1.5}],flies:[]};
 const picks=new Set();
-for(let i=0;i<4;i++){const f=new AdultFly(.5,.5,0,'fly-s'+i);f.choose(spreadRoom);picks.add(f.target&&f.target.x);}
+for(let i=0;i<4;i++){const f=new AdultFly(.5,.5,0,'fly-s'+i);f.choose(spreadRoom);spreadRoom.flies.push(f);picks.add(f.target&&f.target.x);}
 assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
 assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
 

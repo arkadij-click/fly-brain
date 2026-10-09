@@ -89,22 +89,25 @@ class AdultFly{
     if(inside({x,y},poly)){this.destination={x,y};this.target=null;return;}
    }
   }
-  // Crowding: a food already mobbed by others loses its appeal, so the swarm
-  // spreads out over every scent instead of piling onto the nearest one.
+  // Crowding: a food already mobbed by others loses its appeal, and so does
+  // the dish this fly just finished - rotate instead of repeating yourself.
   const crowd=new Map();
-  for(const other of room.flies||[])if(other!==this&&other.target){const i=room.foods.indexOf(other.target);if(i>=0)crowd.set(i,(crowd.get(i)||0)+1);}
-  let best=-Infinity,bestIndex=-1;
+  for(const other of room.flies||[])if(other!==this&&other.target&&distance(this,other)<.18){const i=room.foods.indexOf(other.target);if(i>=0)crowd.set(i,(crowd.get(i)||0)+1);}
+  let best=-Infinity,bestIndex=-1,fallback=-Infinity,fallbackIndex=-1;
   for(let i=0;i<room.foods.length;i++){
    const f=room.foods[i];
    const taste=1+Math.sin(this.seed*555+i*1723)*.9;
-   const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)*taste/(1+(crowd.get(i)||0)*4)+Math.random()*.18;
-   if(score>best){best=score;bestIndex=i;}
+   const bored=f===this.target?3:1;
+   const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)*taste*bored/(1+(crowd.get(i)||0)*4)+Math.random()*.18;
+   if((crowd.get(i)||0)>0){if(score>fallback){fallback=score;fallbackIndex=i;}}
+   else if(score>best){best=score;bestIndex=i;}
   }
+  if(bestIndex<0){bestIndex=fallbackIndex;best=fallback;}
   if(bestIndex>=0){this.target=room.foods[bestIndex]; // ring around the food instead of one shared landing point
    this.destination={x:this.target.x+Math.cos(this.landingAngle)*this.landingRing,y:this.target.y+Math.sin(this.landingAngle)*this.landingRing};
   }else{const x=.58+Math.random()*.32;this.destination={x,y:.448+(x-.554)*.317};}
  }
- scare(x,y){const dx=this.x-x,dy=(this.y-y)*.5625;if(Math.hypot(dx,dy)>.12)return false;this.escapeHeading=Math.hypot(dx,dy)<.005?this.heading+(Math.random()<.5?-1:1)*(1.1+this.seed):Math.atan2(dy,dx);this.alert=1;this.escape=1.5;if(this.mode!=='flight'){this.mode='flight';this.age=0;this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;this.z=0;}this.landingBlend=0;return true;}
+ scare(x,y){const dx=this.x-x,dy=(this.y-y)*.5625;if(Math.hypot(dx,dy)>.12)return false;this.escapeHeading=Math.hypot(dx,dy)<.005?this.heading+(Math.random()<.5?-1:1)*(1.1+this.seed):Math.atan2(dy,dx)+(this.seed-.5)*2;this.alert=1;this.escape=1.5;if(this.mode!=='flight'){this.mode='flight';this.age=0;this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;this.z=0;}this.landingBlend=0;return true;}
  update(dt,room){
   dt=Math.min(dt,.05);const previous={x:this.x,y:this.y};
   this.time+=dt;this.age+=dt;this.sinceMeal+=dt;this.maturity=clamp(this.maturity+dt/MATURATION);this.alert=Math.max(0,this.alert-dt*.38);this.escape=Math.max(0,this.escape-dt);this.hunger=clamp(this.hunger+dt*.004);
