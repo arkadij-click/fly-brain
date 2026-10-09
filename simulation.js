@@ -9,6 +9,7 @@ const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11
 const surfaces=[
  {name:'Counter',poly:[[0,.566],[.283,.490],[.575,.460],[.576,.496],[0,.704]]},
  {name:'Window ledge',poly:[[.554,.420],[1,.512],[1,.618],[.554,.506]]},
+ {name:'Radiator',poly:[[.59,.605],[1,.70],[1,1],[.59,1]]},
  {name:'Table',poly:[[.321,1],[.359,.921],[.415,.842],[.488,.814],[.532,.809],[.640,.838],[.718,.890],[.806,1]]}
 ];
 surfaces.push(room.appleSurface);
