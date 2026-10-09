@@ -272,8 +272,8 @@ aside .audio-dock[open]{width:100%}
 .food-tools{width:auto;padding:6px}
 .food-tools header{margin:0 0 5px;padding:0;justify-content:center}
 .food-tools header .section-title{display:none}
-.food-tools .brushes{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.food-tools button,.food-tools button.food-brush{width:38px;min-width:0;min-height:36px;padding:0;font-size:0;justify-content:center}
+.food-tools .brushes{display:grid;grid-template-columns:repeat(3,38px);gap:4px;justify-content:center}
+.food-tools button,.food-tools button.food-brush{width:38px;min-width:0;min-height:36px;padding:0;font-size:0;justify-content:center;grid-column:auto}
 .food-tools button span{font-size:20px;margin:0}
 .food-tools #observe{grid-column:1/-1;width:100%;font-size:11px}
 .food-tools #erase,.food-tools #undo-food{width:100%}
