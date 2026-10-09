@@ -261,3 +261,8 @@ aside .audio-dock[open]{width:100%}
 .fly-view .panel-map{display:none}
 .fly-view aside .miniroom{position:fixed;right:18px;bottom:18px;width:210px}
 @media(max-width:1000px){.caption .camera-controls input{width:85px}}
+
+/* Eye views sleep until asked for; ◉ wakes them. */
+.eyes-header>div:last-child{display:flex;gap:5px;align-items:center}
+#eye-toggle{min-width:32px}
+#eye-toggle.active{color:#b5e2c4;border-color:#b5e2c488}
