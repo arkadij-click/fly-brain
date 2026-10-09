@@ -14,7 +14,7 @@ console.log('Berlin time, midnight/DST, photographed apple scent, landing surfac
 
 // Photo calibration: reject the fronts beneath the counter/ledge and empty space beside the table.
 const calibrated=new Simulation();
-for(const p of [[.52,.55],[.70,.52],[.80,.945],[.59,.805]])assert.equal(calibrated.addFood(...p,'apple'),false,'vertical face or outside tabletop rejects placement');
+for(const p of [[.52,.55],[.70,.58],[.80,.945],[.59,.805]])assert.equal(calibrated.addFood(...p,'apple'),false,'vertical face or outside tabletop rejects placement');
 for(const p of [[.50,.50],[.78,.515],[.50,.93]])assert(calibrated.addFood(...p,'apple'),'horizontal photographed surface accepts placement');
 calibrated.hunger=.1;let rests=0;
 for(let i=0;i<60;i++){calibrated.choose();if(!calibrated.target){rests++;assert(inside(calibrated.destination,surfaces.find(s=>s.name==='Window ledge').poly),'exploration lands on the ledge instead of the wall below it');}}
