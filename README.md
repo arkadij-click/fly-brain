@@ -1,6 +1,6 @@
 # Fly Brain: a fly in your kitchen
 
-[Play the simulator](https://alexeygrigorev.github.io/fly-brain/)
+[Play the simulator](https://arkadij.click/fly-brain)
 
 A browser game with an autonomous fruit fly in a photographed kitchen. Place food, change light and wind, follow the fly, or switch to its approximate compound-eye view. Connectome-informed activity is shown alongside the fly.
 
