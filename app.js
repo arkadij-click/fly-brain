@@ -169,7 +169,7 @@ function shoo(){
  }
  else scareWithSound();
 }
-$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'Resume':'Pause';};$('scare').onclick=()=>shoo();$('trail').onclick=()=>{$('trail').classList.toggle('active',showTrail=!showTrail);};$('map').onclick=()=>{$('map').classList.toggle('active',showMap=!showMap);};$('food').onclick=()=>selectTool(placing?null:'apple');
+$('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'▶':'⏸';};$('scare').onclick=()=>shoo();$('trail').onclick=()=>{$('trail').classList.toggle('active',showTrail=!showTrail);};$('map').onclick=()=>{$('map').classList.toggle('active',showMap=!showMap);};$('food').onclick=()=>selectTool(placing?null:'apple');
 $('panel-toggle').onclick=()=>{const hidden=document.body.classList.toggle('panel-hidden');$('panel-toggle').classList.toggle('active',hidden);$('panel-toggle').setAttribute('aria-pressed',String(!hidden));};
 $('save-game').onclick=()=>saveGame(true);
 $('load-game').onclick=()=>log(loadGame()?'Save loaded — welcome back.':'No save found yet.');

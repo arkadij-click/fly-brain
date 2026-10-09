@@ -268,6 +268,11 @@ aside .audio-dock[open]{width:100%}
 #eye-toggle.active{color:#b5e2c4;border-color:#b5e2c488}
 #scene{position:absolute}
 
+/* Icon-only toolbar. */
+.toolbar button{width:38px;min-width:38px;padding:0;font-size:17px;display:flex;align-items:center;justify-content:center}
+.toolbar select{width:auto}
+.toolbar{gap:4px}
+
 /* Icon-only compact food tools. */
 .food-tools{width:auto;padding:5px}
 .food-tools header{margin:0 0 5px;padding:0;justify-content:center}
