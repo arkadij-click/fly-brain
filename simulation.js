@@ -14,7 +14,7 @@ const surfaces=[
 surfaces.push(room.appleSurface);
 function inside(p,poly){let result=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p.y)!==(b[1]>p.y)&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0])result=!result;}return result;}
 class Simulation{
- constructor(seed=783){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.32;this.y=.42;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=[{name:'Fruit on the counter',x:.140,y:.530,strength:1},{...room.apple},{name:'Crumbs on the plate',x:.535,y:.966,strength:.9}];this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.note('A new fly enters the kitchen.');}
+ constructor(seed=783){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.32;this.y=.42;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=[{name:'Fruit on the counter',x:.140,y:.530,strength:1},{...room.apple},{name:'Crumbs on the plate',x:.535,y:.966,strength:.9}];this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.layAt=2;this.onLay=null;this.note('A new fly enters the kitchen.');}
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  note(message){this.events.unshift({time:this.time,message});this.events.length=Math.min(3,this.events.length);}
  transition(mode){this.mode=mode;this.age=0;}
@@ -53,7 +53,7 @@ class Simulation{
  }else{
   this.energy=clamp(this.energy+dt*.02);this.z=0;this.bank=(this.bank||0)*Math.exp(-dt*10);this.turnRate=(this.turnRate||0)*Math.exp(-dt*10);this.touchdown=Math.max(0,(this.touchdown||0)-dt*4);
   if(this.mode==='walking'){this.heading+=Math.sin(this.time*5)*dt;const nx=this.x+Math.cos(this.heading)*.006*dt,ny=this.y+Math.sin(this.heading)*.006*dt/.5625;if(surfaces.some(s=>inside({x:nx,y:ny},s.poly))){this.x=nx;this.y=ny;}else this.heading+=Math.PI*dt;if(this.age>2){this.transition(this.target&&this.hunger>.25?'feeding':'grooming');if(this.mode==='feeding'){this.meals++;this.sinceMeal=0;this.note('Tasting and feeding.');}}}
-  if(this.mode==='feeding'){this.hunger=clamp(this.hunger-dt*(this.target?.feedRate||.11));if(this.age>5.5)this.transition('grooming');}
+  if(this.mode==='feeding'){this.hunger=clamp(this.hunger-dt*(this.target?.feedRate||.11));if(this.age>5.5){if(this.meals>=this.layAt){this.layAt=this.meals+2+Math.floor(this.random()*2);this.readyToLay=true;}this.transition('grooming');if(this.readyToLay){this.readyToLay=false;this.onLay&&this.onLay(this.x,this.y);}}}
   if(this.mode==='grooming'&&this.age>3.2)this.transition('resting');
   if(this.mode==='resting'&&this.age>3.5){this.choose();this.takeoff();this.note(this.target?'Taking off toward '+this.target.name.toLowerCase()+'.':'Exploring the window.');}
  }
