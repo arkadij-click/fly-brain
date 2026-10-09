@@ -292,5 +292,6 @@ aside .audio-dock[open]{width:100%}
 
 /* Tidy section chevrons: larger, centered, pinned to the card's right edge. */
 aside details>summary{display:flex;align-items:center;gap:8px}
-aside details>summary::after{margin-left:auto;content:'⌄';font-size:17px;line-height:1;color:#aebfb2}
-aside details[open]>summary::after{content:'⌃'}
+aside details>summary::after{content:'';margin-left:auto;width:9px;height:9px;border-right:2px solid #aebfb2;border-bottom:2px solid #aebfb2;transform:rotate(45deg) translate(-2px,-2px)}
+aside details[open]>summary::after{transform:rotate(225deg) translate(-2px,-2px)}
+#panel-toggle svg{display:block;margin:auto}
