@@ -143,7 +143,7 @@ function setFlyView(enabled){
  renderEyes();renderMiniroom();
 }
 $('fly-view').onclick=()=>setFlyView(!flyView);
-$('follow').onclick=()=>{if(flyView){setFlyView(false);following=true;}else following=!following;$('follow').classList.toggle('active',following);$('follow').setAttribute('aria-pressed',String(following));previousPointer=null;};$('follow-target').onchange=()=>setFollowTarget($('follow-target').value||'main');$('zoom').oninput=()=>previousPointer=null;
+$('follow').onclick=()=>{if(flyView){setFlyView(false);following=true;}else following=!following;if(!following)$('zoom').value=1;$('follow').classList.toggle('active',following);$('follow').setAttribute('aria-pressed',String(following));previousPointer=null;};$('follow-target').onchange=()=>setFollowTarget($('follow-target').value||'main');$('zoom').oninput=()=>previousPointer=null;
 async function clap(pan){
  try{
   if(!soundtrack.context){
@@ -189,7 +189,7 @@ function point(e){const r=canvas.getBoundingClientRect(),w=Math.max(r.width,r.he
 // Pinch with two fingers to set the follow zoom; a pinch never counts as a tap.
 const pinch={pointers:new Map(),startDist:0,startZoom:3,moved:false};
 canvas.addEventListener('pointerdown',e=>{pinch.pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pinch.pointers.size===2){const [[ax,ay],[bx,by]]=[...pinch.pointers.values()];pinch.startDist=Math.hypot(ax-bx,ay-by);pinch.startZoom=Number($('zoom').value);}});
-canvas.addEventListener('pointermove',e=>{if(!pinch.pointers.has(e.pointerId))return;pinch.pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pinch.pointers.size===2&&pinch.startDist>0){const [[ax,ay],[bx,by]]=[...pinch.pointers.values()];const d=Math.hypot(ax-bx,ay-by);if(d>10){$('zoom').value=Math.max(1.5,Math.min(6,pinch.startZoom*d/pinch.startDist));pinch.moved=true;previousPointer=null;}}});
+canvas.addEventListener('pointermove',e=>{if(!pinch.pointers.has(e.pointerId))return;pinch.pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pinch.pointers.size===2&&pinch.startDist>0){const [[ax,ay],[bx,by]]=[...pinch.pointers.values()];const d=Math.hypot(ax-bx,ay-by);if(d>10){$('zoom').value=Math.max(1,Math.min(6,pinch.startZoom*d/pinch.startDist));pinch.moved=true;previousPointer=null;}}});
 const liftPinch=e=>{pinch.pointers.delete(e.pointerId);if(pinch.pointers.size<2)pinch.startDist=0;};
 canvas.addEventListener('pointerup',liftPinch);canvas.addEventListener('pointercancel',liftPinch);
 canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}}else if(placing){if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{const picked=pickMember(p);colony.scare(p.x,p.y);if(picked)setFollowTarget(picked);else scareWithSound(p.x,p.y,Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.10);}};
