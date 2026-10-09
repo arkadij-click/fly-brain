@@ -53,5 +53,5 @@ async function load(photo){
 }
 function drawPhoto(c,w,h){if(nightPhoto)c.drawImage(currentDay()&&dayPhoto?dayPhoto:nightPhoto,0,0,w,h);}
 function status(){return (currentDay()?'Day':'Night')+(mode==='auto'?' · Berlin auto':' · preview');}
-const api={solarElevation,isDay,load,drawPhoto,setMode,status};if(typeof module!=='undefined')module.exports=api;else root.Daylight=api;
+const api={solarElevation,isDay,load,drawPhoto,setMode,status,get mode(){return mode;}};if(typeof module!=='undefined')module.exports=api;else root.Daylight=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
