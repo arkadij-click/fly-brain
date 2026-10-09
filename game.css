@@ -282,3 +282,10 @@ aside .audio-dock[open]{width:100%}
 .food-tools button span{font-size:17px;margin:0}
 .food-tools #observe{grid-column:auto;width:30px;font-size:15px;line-height:30px}
 .food-tools #erase,.food-tools #undo-food{width:30px}
+
+/* The zoom slider never squeezes its neighbors: stable rows in the camera card. */
+.caption .camera-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch}
+.caption .camera-controls button{min-height:40px;width:100%;font-size:14px}
+.caption .camera-controls label{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:40px;margin:0;font-size:13px}
+.caption .camera-controls input[type=range]{flex:1;width:auto;min-width:60px}
+.caption .camera-controls select{flex:1;min-width:0;width:auto}
