@@ -67,7 +67,7 @@ class AdultFly{
   this.id=id;
   this.sex=Math.random()<.4?'female':'male';
   this.mealsSinceLay=0;
-  this.x=x;this.y=y;this.z=0;this.vx=0;this.vy=0;this.heading=Math.random()*Math.PI*2;this.time=time;this.age=0;this.maturity=0;this.mode='flight';this.hunger=.65;this.energy=.75;this.alert=0;this.escape=0;this.bank=0;this.turnRate=0;this.verticalSpeed=0;this.landingBlend=0;this.touchdown=0;this.airtime=0;this.landings=0;this.meals=0;this.sinceMeal=0;this.travel=0;this.target=null;this.destination={x,y:y-.06};this.escapeHeading=0;
+  this.x=x;this.y=y;this.z=0;this.vx=0;this.vy=0;this.heading=Math.random()*Math.PI*2;this.time=time;this.age=0;this.maturity=0;this.mode='flight';this.hunger=.65;this.energy=.75;this.alert=0;this.escape=0;this.bank=0;this.turnRate=0;this.verticalSpeed=0;this.landingBlend=0;this.touchdown=0;this.airtime=0;this.landings=0;this.meals=0;this.sinceMeal=0;this.travel=0;this.trail=[];this.target=null;this.destination={x,y:y-.06};this.escapeHeading=0;
   this.setSeed(Math.random());
   this.name=name||makeName(this.seed);
   this.maturity=.35+.25*this.seed;
@@ -173,6 +173,7 @@ class AdultFly{
    else if(this.mode==='resting'&&this.age>this.restDuration){this.choose(room);this.mode='flight';this.age=0;this.landingBlend=0;}
   }
   this.travel+=distance(this,previous);
+  if(!this.trail.length||this.time-this.trail[this.trail.length-1].t>.1){this.trail.push({x:this.x,y:this.y,t:this.time});if(this.trail.length>220)this.trail.shift();}
  }
 }
 class Colony{
