@@ -32,16 +32,17 @@ let sceneViewW=.4,sceneViewH=.4;function renderScene(){const [cw,ch,d]=resize(ca
  // Hard guarantee: the drawn view can never leave the photograph, even while
  // the zoom is still easing - clamp the camera for drawing every frame.
  const cxMin=Math.min(.5,cw/(2*camera.zoom*w)),cxMax=1-cxMin,cyMin=Math.min(.5,ch/(2*camera.zoom*h)),cyMax=1-cyMin;
- const vx=Math.max(cxMin,Math.min(cxMax,camera.x)),vy=Math.max(cyMin,Math.min(cyMax,camera.y));
+ const vx=Math.max(cxMin,Math.min(cxMax,camera.x)),vy=Math.max(cyMin,Math.min(cyMax,camera.y));;FlightArt.setLod(camera.zoom);FlyLifecycle.setLod(camera.zoom);const cullX=cxMin+.05,cullY=cyMin+.05,vis=(fx,fy)=>Math.abs(fx-vx)<=cullX&&Math.abs(fy-vy)<=cullY;
  ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#090f0c';ctx.fillRect(0,0,cw,ch);ctx.save();ctx.beginPath();ctx.rect(0,0,cw,ch);ctx.clip();ctx.translate(...sceneCenter(cw,ch));ctx.scale(camera.zoom,camera.zoom);ctx.translate(-vx*w,-vy*h);ctx.drawImage(sceneBackground(w,h,d),0,0,w,h);ctx.fillStyle=`rgba(8,16,18,${(1-sim.light)*.28})`;ctx.fillRect(0,0,w,h);
  if(sim.foods.some(f=>f.placed))ctx.drawImage(foodsLayer(w,h,d),0,0,w,h);
  for(const d of colony.dirts)FlyLifecycle.drawDirt(ctx,d.x*w,d.y*h,Math.max(18,w*.05));
  if(showMap){for(const s of Kitchen.surfaces){ctx.beginPath();s.poly.forEach((p,i)=>i?ctx.lineTo(p[0]*w,p[1]*h):ctx.moveTo(p[0]*w,p[1]*h));ctx.closePath();ctx.fillStyle='#b5e2c418';ctx.fill();ctx.strokeStyle='#d2f0b680';ctx.lineWidth=1;ctx.stroke();}for(const f of sim.foods){ctx.strokeStyle='#d5efb8';ctx.lineWidth=1;ctx.beginPath();ctx.arc(f.x*w,f.y*h,8,0,Math.PI*2);ctx.stroke();ctx.font='11px system-ui';let tw=ctx.measureText(f.name).width;let tx=Math.min(w-tw-12,Math.max(12,f.x*w+13)),ty=f.y*h>h-35?f.y*h-15:f.y*h;ctx.fillStyle='#101c18dd';ctx.fillRect(tx-4,ty-12,tw+8,19);ctx.fillStyle='#e1f2d8';ctx.fillText(f.name,tx,ty+1);}}
  if(showTrail){ctx.lineWidth=1.3;for(let i=1;i<sim.trail.length;i++){let a=sim.trail[i-1],b=sim.trail[i];ctx.strokeStyle=`rgba(230,255,200,${i/sim.trail.length*.6})`;ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();}}
  if(placing&&pointerWorld){const p=pointerWorld,valid=Kitchen.surfaces.some(s=>Kitchen.inside(p,s.poly));if(foodKind)FoodArt.draw(ctx,foodKind,p.x*w,p.y*h,w*.023,.65,{seed:0,light:sim.light});ctx.strokeStyle=valid?'#d7f4a9':'#e6a598';ctx.lineWidth=1/camera.zoom;ctx.beginPath();ctx.arc(p.x*w,p.y*h,10/camera.zoom,0,Math.PI*2);ctx.stroke();}
- for(const e of colony.eggs)FlyLifecycle.drawEggs(ctx,e.x*w,e.y*h,Math.max(7,w*.009),sim.time,e.x*8191+e.y*16381,e.mutant);
- for(const pu of colony.pupae)FlyLifecycle.drawPupa(ctx,pu.x*w,pu.y*h,Math.max(10,w*.013));
+ for(const e of colony.eggs)if(vis(e.x,e.y))FlyLifecycle.drawEggs(ctx,e.x*w,e.y*h,Math.max(7,w*.009),sim.time,e.x*8191+e.y*16381,e.mutant);
+ for(const pu of colony.pupae)if(vis(pu.x,pu.y))FlyLifecycle.drawPupa(ctx,pu.x*w,pu.y*h,Math.max(10,w*.013));
  for(const cp of visibleColony.values()){
+  if(!vis(cp.x,cp.y))continue;
   if(cp.kind==='maggot')FlyLifecycle.drawMaggot(ctx,cp.x*w,cp.y*h,Math.max(9,w*.013)*(.45+.55*cp.size),cp.heading,sim.time,cp.size,cp.mutant);
   else if(cp.kind==='adult'){const body=Math.max(12,w*.014)*(.85+cp.y*.35)*(.45+.55*cp.maturity);fly(ctx,cp.x*w,(cp.y-cp.z)*h,body,cp.heading,cp.time,cp.mode,cp);}}
  if(!placing&&followTarget!=='main'){const sel=visibleColony.get(followTarget);if(sel){ctx.strokeStyle='#ffe9a8cc';ctx.lineWidth=1.4/camera.zoom;ctx.beginPath();ctx.ellipse(sel.x*w,(sel.y-sel.z)*h,10/camera.zoom,5/camera.zoom,0,0,Math.PI*2);ctx.stroke();}}

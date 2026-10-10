@@ -4,7 +4,27 @@ const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 function pose(s){return {x:s.x,y:s.y,z:s.z,heading:s.heading,time:s.time,mode:s.mode,bank:s.bank||0,verticalSpeed:s.verticalSpeed||0,landingBlend:s.landingBlend||0,touchdown:s.touchdown||0,age:s.age,poke:s.poke||0};}
 function interpolate(a,b,t){t=clamp(t);const p={...b};for(const key of ['x','y','z','time','bank','verticalSpeed','landingBlend','touchdown','poke'])p[key]=a[key]+(b[key]-a[key])*t;const turn=Math.atan2(Math.sin(b.heading-a.heading),Math.cos(b.heading-a.heading));p.heading=a.heading+turn*t;return p;}
 function ellipse(c,x,y,rx,ry,color,angle=0,stroke){c.beginPath();c.ellipse(x,y,rx,ry,angle,0,Math.PI*2);c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.55;c.stroke();}}
-function draw(c,x,y,size,angle,time,mode,p={}){
+let lod=1;const SPR=160,sprites={};
+function sprite(flying,mutant){
+ const key=(flying?'f':'w')+(mutant?'m':'n');
+ if(sprites[key])return sprites[key];
+ const cv=document.createElement('canvas');cv.width=SPR;cv.height=SPR;
+ const g=cv.getContext('2d');
+ drawDetailed(g,SPR/2,SPR/2,72,-Math.PI/2,1.7,flying?'flight':'walking',{poke:0,mutant,landingBlend:flying?.4:1,touchdown:0,age:9});
+ sprites[key]=cv;return cv;
+}
+function draw(c,x,y,size,angle,time,mode,p){
+ // Small-on-screen flies draw from a cached sprite (one drawImage); zoomed-in
+ // flies get the full vector art. lod is the camera zoom, set per frame.
+ const pose=p||{};
+ if(size*(lod||1)<26&&typeof document!=='undefined'){
+  const spr=sprite(mode==='flight',!!pose.mutant),k=size/72;
+  c.save();c.translate(x,y);c.rotate(angle+Math.PI/2);c.drawImage(spr,-80*k,-80*k,160*k,160*k);c.restore();
+  return;
+ }
+ drawDetailed(c,x,y,size,angle,time,mode,pose);
+}
+function drawDetailed(c,x,y,size,angle,time,mode,p={}){
  const flying=mode==='flight',walking=mode==='walking',grooming=mode==='grooming',bank=p.bank||0,reach=flying?.23+.77*(p.landingBlend||0):1;
  c.save();c.translate(x,y);c.rotate(angle+Math.PI/2);c.scale(size/40,size/40);c.transform(1-Math.abs(bank)*.3,0,bank*.12,1,0,0);if(!flying)c.scale(1,1-(p.touchdown||0)*.08);
  // Six articulated legs tuck back in flight and reach toward the landing surface.
@@ -29,5 +49,5 @@ function draw(c,x,y,size,angle,time,mode,p={}){
  if(mode==='feeding'){c.strokeStyle='#685039';c.lineWidth=1.5;c.beginPath();c.moveTo(0,-17);c.lineTo(0,-22-Math.sin(time*12));c.stroke();ellipse(c,0,-23-Math.sin(time*12),1.8,.9,'#806048');}
  c.restore();
 }
-const api={draw,pose,interpolate};if(typeof module!=='undefined')module.exports=api;else root.FlightArt=api;
+const api={draw,detailed:drawDetailed,pose,interpolate,setLod:v=>{lod=v;}};if(typeof module!=='undefined')module.exports=api;else root.FlightArt=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -44,9 +44,10 @@ for(let i=0;i<60*10;i++){colony.update(1/60,room,sim.time+=1/60);assert(Number.i
 assert(target.escape===0,'escape subsides');
 
 // Population caps keep the kitchen from collapsing under infinite clutches.
-for(let i=0;i<200;i++)colony.layClutch(.3,.6,i);
-assert(colony.eggs.length<=80,'egg cap holds');
-assert(colony.layEgg(.3,.62,1)===false||colony.eggs.length<=80,'manual eggs respect the cap too');
+for(let i=0;i<400;i++)colony.layClutch(.3,.6,i);
+assert(colony.eggs.length<=800,'egg cap holds');
+assert(colony.adults.length<=1000,'adult cap holds');
+assert(colony.layEgg(.3,.62,1)===false||colony.eggs.length<=800,'manual eggs respect the cap too');
 
 // Every adult carries its own personality: gaits, weaving and appetites differ.
 const one=new AdultFly(.5,.5,0,'fly-u1'),two=new AdultFly(.5,.5,0,'fly-u2');

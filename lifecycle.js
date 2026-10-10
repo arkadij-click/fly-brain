@@ -6,7 +6,7 @@ const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 // Realistic fruit-fly development runs on days; this kitchen compresses one
 // generation into a few simulated minutes so the whole cycle stays watchable.
 const EGG_DURATION=40,LARVA_DURATION=75,PUPA_DURATION=25,MATURATION=120;
-const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=80,MAX_LARVAE=48,MAX_ADULTS=40;
+const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=800,MAX_LARVAE=400,MAX_ADULTS=1000;
 // Every hatchling gets a name of its own, derived from its personality seed
 // so saves restore it exactly. Boys are a touch more common than girls.
 const NAME_A=['Bu','Zi','Mi','Ko','Lu','Fu','Ra','Ni','Go','Pe','Dzi','Ta'];
@@ -199,7 +199,24 @@ const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Mat
 // --- Rendering for the pre-adult stages; adults reuse FlightArt. ---
 function pearl(c,x,y,rx,ry,angle){c.save();c.translate(x,y);c.rotate(angle);c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fillStyle='#f2ecd9';c.fill();c.strokeStyle='#c9c0a4';c.lineWidth=.5;c.stroke();c.beginPath();c.ellipse(-rx*.3,-ry*.3,rx*.35,ry*.3,0,0,Math.PI*2);c.fillStyle='#ffffffcc';c.fill();c.restore();}
 function drawEggs(c,x,y,size,time,seed=0,mutant=false){const count=3+Math.floor(Math.abs(Math.sin(seed)) *2.9);for(let i=0;i<count;i++){const a=seed*7+i*2.4,r=size*.55*Math.sqrt((i+1)/count);c.save();if(mutant){c.filter='hue-rotate(160deg)';}pearl(c,x+Math.cos(a+i)*r,y+Math.sin(a+i)*r*.6,size*.34,size*.22,a+i);c.restore();}}
+let mLod=1;const mSprites={};const M_SPR=140;
+function maggotSprite(mutant){
+ const key=mutant?'m':'n';
+ if(mSprites[key])return mSprites[key];
+ const cv=document.createElement('canvas');cv.width=M_SPR;cv.height=M_SPR;
+ const g=cv.getContext('2d');g.translate(M_SPR/2,M_SPR/2);
+ drawMaggotDetailed(g,M_SPR/2,M_SPR/2,M_SPR/3.4,-Math.PI/2,1.7,1,mutant);
+ mSprites[key]=cv;return cv;
+}
 function drawMaggot(c,x,y,size,heading,time,progress=1,mutant=false){
+ if(size*(mLod||1)<22&&typeof document!=='undefined'){
+  const spr=maggotSprite(mutant),k=size/(M_SPR/3.4);
+  c.save();c.translate(x,y);c.rotate(heading);c.drawImage(spr,-M_SPR/2*k,-M_SPR/2*k,M_SPR*k,M_SPR*k);c.restore();
+  return;
+ }
+ drawMaggotDetailed(c,x,y,size,heading,time,progress,mutant);
+}
+function drawMaggotDetailed(c,x,y,size,heading,time,progress=1,mutant=false){
  c.save();c.translate(x,y);c.rotate(heading);c.scale(size/40,size/40);
  const flex=Math.sin(time*6)*4*(.3+progress*.7);
  c.lineCap='round';
@@ -231,6 +248,6 @@ function drawPupa(c,x,y,size,angle=0){
  c.beginPath();c.ellipse(2,-2,7,3,0,0,Math.PI*2);c.fillStyle='#ffffff14';c.fill();
  c.restore();
 }
-const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawPupa,drawDirt,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE};
+const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawMaggotDetailed,drawPupa,drawDirt,setLod:v=>{mLod=v;},EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE};
 if(typeof module!=='undefined')module.exports=api;else root.FlyLifecycle=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
