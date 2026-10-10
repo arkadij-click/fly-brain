@@ -294,11 +294,24 @@ const settingDocks=[...document.querySelectorAll('.room-dock,.audio-dock')];
 settingDocks.forEach(dock=>dock.addEventListener('toggle',()=>{if(dock.open)settingDocks.forEach(other=>{if(other!==dock)other.open=false;});}));
 document.addEventListener('pointerdown',e=>settingDocks.forEach(dock=>{if(!dock.contains(e.target))dock.open=false;}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){settingDocks.forEach(dock=>dock.open=false);}});
-for(const [id,title] of [['pause','Pause / resume · Space'],['scare','Startle the followed insect · S'],['trail','Show flight trail'],['map','Show landing surfaces and scents'],['panel-toggle','Hide or show the instrument panel · P'],['save-game','Save the game now (auto-saves every few seconds)'],['load-game','Load the last save'],['sound-toggle','Music and sounds on/off'],['eye-toggle','Render the compound-eye views (heavier) · off by default'],['follow','Follow the selected insect / view full room'],['observe','Normal cursor · Done or Escape exits placement']])$(id).title=title;
+for(const [id,title] of [['pause','Pause / resume · Space'],['scare','Startle the followed insect · S'],['trail','Show flight trail'],['map','Show landing surfaces and scents'],['panel-toggle','Hide or show the instrument panel · P'],['save-game','Save the game now (auto-saves every few seconds)'],['load-game','Load the last save'],['sound-toggle','Music and sounds on/off'],['fullscreen-toggle','Fullscreen · hides the browser chrome'],['eye-toggle','Render the compound-eye views (heavier) · off by default'],['follow','Follow the selected insect / view full room'],['observe','Normal cursor · Done or Escape exits placement']])$(id).title=title;
 $('vision-info').onclick=()=> $('vision-details').showModal();
 $('vision-close').onclick=()=> $('vision-details').close();
 document.querySelectorAll('[data-outside]').forEach(button=>button.onclick=()=>{Daylight.setMode(button.dataset.outside);document.querySelectorAll('[data-outside]').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});refreshFoodTexture();});
 document.querySelectorAll('[data-scene-switch]').forEach(b=>b.onclick=()=>{if(localStorage.getItem('fly-scene')!==b.dataset.sceneSwitch){localStorage.setItem('fly-scene',b.dataset.sceneSwitch);location.reload();}});
+// Fullscreen: hides the tablet/phone browser chrome. Falls back to a hint on
+// devices (iPhone Safari) that only support it via Add to Home Screen.
+function isFullscreen(){return !!(document.fullscreenElement||document.webkitFullscreenElement);}
+function syncFullscreenButton(){const on=isFullscreen();$('fullscreen-toggle').classList.toggle('active',on);$('fullscreen-toggle').setAttribute('aria-pressed',String(on));}
+function toggleFullscreen(){
+ const el=document.documentElement,req=el.requestFullscreen||el.webkitRequestFullscreen;
+ if(!isFullscreen()&&req){req.call(el).catch?.(()=>log('Fullscreen was rejected by the browser.'));}
+ else if(isFullscreen){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}
+ else log('Fullscreen is not supported here — use Add to Home Screen instead.');
+}
+$('fullscreen-toggle').onclick=()=>toggleFullscreen();
+document.addEventListener('fullscreenchange',syncFullscreenButton);
+document.addEventListener('webkitfullscreenchange',syncFullscreenButton);
 boot();
 
 
