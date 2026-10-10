@@ -7,23 +7,22 @@ const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11
 // Hand-traced against the 4032 × 2268 kitchen photo, in normalized image coordinates.
 // Front edges stop at the horizontal surface, not the appliance faces below it.
 const surfaces=[
- {name:'Counter',poly:[[0,.56],[.283,.488],[.57,.455],[.555,.497],[.44,.531],[.24,.587],[0,.686]]},
- {name:'Window ledge',poly:[[.554,.395],[1,.505],[1,.592],[.554,.482]]},
- {name:'Radiator top',poly:[[.60,.574],[.815,.655],[.815,.695],[.60,.614]]},
- {name:'Radiator',food:false,poly:[[.60,.614],[.612,.758],[.668,.758],[.668,.64],[.815,.695],[.85,.703],[.85,1],[.60,1]]},
- {name:'Top shelf',poly:[[0,.205],[.52,.222],[.52,.242],[0,.225]]},
- {name:'Freezer top',poly:[[.435,.55],[.60,.50],[.615,.532],[.445,.588]]},
- {name:'Trolley',poly:[[.553,.708],[.668,.702],[.668,.75],[.553,.756]]},
- {name:'Table',poly:[[.321,1],[.36,.921],[.415,.842],[.488,.814],[.532,.809],[.66,.833],[.71,.857],[.76,.887],[.805,.925],[.84,1]]}
+ {name:'Counter',poly:[[0,.455],[.15,.465],[.30,.478],[.43,.495],[.43,.57],[.28,.556],[.14,.568],[0,.582]]},
+ {name:'Window sill',poly:[[.70,.478],[.98,.504],[.98,.564],[.70,.545]]},
+ {name:'Radiator top',poly:[[.72,.615],[.87,.65],[.87,.685],[.72,.655]]},
+ {name:'Radiator',food:false,poly:[[.72,.655],[.87,.685],[.87,.93],[.72,.90]]},
+ {name:'Top shelf',poly:[[.005,.10],[.52,.105],[.52,.148],[.005,.148]]},
+ {name:'Freezer top',poly:[[.452,.525],[.56,.548],[.56,.588],[.452,.562]]},
+ {name:'Table',poly:[[.34,.655],[.44,.60],[.55,.597],[.655,.645],[.675,.73],[.63,.86],[.50,.945],[.38,.92],[.325,.80],[.32,.73]]},
 ];
 surfaces.push(room.appleSurface);
 function inside(p,poly){let result=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p.y)!==(b[1]>p.y)&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0])result=!result;}return result;}
 class Simulation{
- constructor(seed=783){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.32;this.y=.42;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=[{name:'Fruit on the counter',x:.140,y:.530,strength:1},{...room.apple},{name:'Crumbs on the plate',x:.535,y:.966,strength:.9}];this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.layAt=2;this.onLay=null;this.foodsVersion=0;this.note('A new fly enters the kitchen.');}
+ constructor(seed=783){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.25;this.y=.48;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=[{name:'Fruit on the counter',x:.140,y:.530,strength:1},{...room.apple},{name:'Crumbs on the plate',x:.50,y:.88,strength:.9}];this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.layAt=2;this.onLay=null;this.foodsVersion=0;this.note('A new fly enters the kitchen.');}
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  note(message){this.events.unshift({time:this.time,message});this.events.length=Math.min(3,this.events.length);}
  transition(mode){this.mode=mode;this.age=0;}
- choose(){let best=-Infinity;for(const f of this.foods){const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)+this.random()*.18;if(score>best){best=score;this.target=f;}}this.destination={...this.target};if(this.hunger<.28&&this.random()<.75){const x=.58+this.random()*.32;this.destination={x,y:.448+(x-.554)*.317};this.target=null;}}
+ choose(){let best=-Infinity;for(const f of this.foods){const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)+this.random()*.18;if(score>best){best=score;this.target=f;}}this.destination={...this.target};if(this.hunger<.28&&this.random()<.75){const x=.72+this.random()*.26;this.destination={x,y:.49+(x-.72)*.115};this.target=null;}}
  addFood(x,y,kind='apple'){const type=foodTypes[kind],p={x,y};const surf=surfaces.find(s=>inside(p,s.poly));if(!type||type.strength<=0||!surf||surf.food===false||!Number.isFinite(x)||!Number.isFinite(y)||x<.02||x>.98||y<.02||y>.99)return false;this.foods.push({...p,...type,kind,placed:true,id:'food-'+this.time+'-'+this.foods.length});this.foodsVersion=(this.foodsVersion||0)+1;this.choose();if(this.mode!=='flight')this.takeoff();this.note(type.name+' placed — a new scent.');return true;}
  removeFood(food){const index=this.foods.indexOf(food);if(index<0||!food.placed)return false;this.foods.splice(index,1);this.foodsVersion=(this.foodsVersion||0)+1;if(this.target===food){this.choose();if(this.mode!=='flight')this.takeoff();}this.note(food.name+' removed.');return true;}
  undoFood(){return this.removeFood([...this.foods].reverse().find(f=>f.placed));}

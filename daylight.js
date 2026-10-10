@@ -35,8 +35,8 @@ function drawPane(c,image,source,target,w,h){
  }
  c.restore();
 }
-async function load(photo){
- nightPhoto=photo;const day=new Image();day.src='assets/window-exterior.jpg';await day.decode();
+async function load(photo,composite=true){
+ nightPhoto=photo;if(!composite)return;const day=new Image();day.src='assets/window-exterior.jpg';await day.decode();
  dayPhoto=document.createElement('canvas');dayPhoto.width=photo.naturalWidth;dayPhoto.height=photo.naturalHeight;
  const c=dayPhoto.getContext('2d'),w=dayPhoto.width,h=dayPhoto.height;c.drawImage(photo,0,0);
  // Composite only the photographed glass. The original kitchen remains intact.

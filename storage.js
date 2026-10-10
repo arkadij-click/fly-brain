@@ -2,7 +2,7 @@
 'use strict';
 const lifecycle=typeof module!=='undefined'?require('./lifecycle'):root.FlyLifecycle;
 const {Egg,Maggot,Pupa,AdultFly}=lifecycle;
-const KEY='fly-brain-kitchen-save-v1',VERSION=1;
+const KEY='fly-brain-kitchen-save-v2',VERSION=1;
 // One save slot in whatever storage the host provides (localStorage in the
 // browser, any get/set/remove object in tests). Everything here is plain data:
 // the main fly, her foods and the whole colony, keyed by stable ids.

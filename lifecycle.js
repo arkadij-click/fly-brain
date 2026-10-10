@@ -129,7 +129,7 @@ class AdultFly{
   if(bestIndex<0){bestIndex=fallbackIndex;best=fallback;}
   if(bestIndex>=0){this.target=room.foods[bestIndex]; // ring around the food instead of one shared landing point
    this.destination={x:this.target.x+Math.cos(this.landingAngle)*this.landingRing,y:this.target.y+Math.sin(this.landingAngle)*this.landingRing};
-  }else{const x=.58+Math.random()*.32;this.destination={x,y:.448+(x-.554)*.317};}
+  }else{const x=.72+Math.random()*.26;this.destination={x,y:.49+(x-.72)*.115};}
  }
  scare(x,y){const dx=this.x-x,dy=(this.y-y)*.5625;if(Math.hypot(dx,dy)>.12)return false;this.escapeHeading=Math.hypot(dx,dy)<.005?this.heading+(Math.random()<.5?-1:1)*(1.1+this.seed):Math.atan2(dy,dx)+(this.seed-.5)*2;this.alert=1;this.escape=1.5;this.poke=1;if(this.mode!=='flight'){this.mode='flight';this.age=0;this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;this.z=0;}this.landingBlend=0;return true;}
  update(dt,room){
