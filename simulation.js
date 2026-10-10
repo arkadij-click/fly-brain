@@ -3,7 +3,7 @@
 const room=typeof module!=='undefined'?require('./room-details'):root.RoomDetails;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const distance=(a,b)=>Math.hypot(a.x-b.x,(a.y-b.y)*.5625);
-const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11},banana:{name:'Banana peel',icon:'🍌',strength:1.8,feedRate:.09},berry:{name:'Strawberry',icon:'🍓',strength:1.5,feedRate:.12},crumbs:{name:'Bread crumbs',icon:'🍞',strength:.65,feedRate:.07},juice:{name:'Juice drop',icon:'🧃',strength:1.7,feedRate:.13}};
+const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11},banana:{name:'Banana peel',icon:'🍌',strength:1.8,feedRate:.09},berry:{name:'Strawberry',icon:'🍓',strength:1.5,feedRate:.12},crumbs:{name:'Bread crumbs',icon:'🍞',strength:.65,feedRate:.07},juice:{name:'Juice drop',icon:'🧃',strength:1.7,feedRate:.13},egg:{name:'Egg',icon:'🥚',strength:0,feedRate:0}};
 // Hand-traced against the 4032 × 2268 kitchen photo, in normalized image coordinates.
 // Front edges stop at the horizontal surface, not the appliance faces below it.
 const surfaces=[
@@ -24,7 +24,7 @@ class Simulation{
  note(message){this.events.unshift({time:this.time,message});this.events.length=Math.min(3,this.events.length);}
  transition(mode){this.mode=mode;this.age=0;}
  choose(){let best=-Infinity;for(const f of this.foods){const score=f.strength/(.12+distance(this,f))*(this.hunger+.1)+this.random()*.18;if(score>best){best=score;this.target=f;}}this.destination={...this.target};if(this.hunger<.28&&this.random()<.75){const x=.58+this.random()*.32;this.destination={x,y:.448+(x-.554)*.317};this.target=null;}}
- addFood(x,y,kind='apple'){const type=foodTypes[kind],p={x,y};const surf=surfaces.find(s=>inside(p,s.poly));if(!type||!surf||surf.food===false||!Number.isFinite(x)||!Number.isFinite(y)||x<.02||x>.98||y<.02||y>.99)return false;this.foods.push({...p,...type,kind,placed:true,id:'food-'+this.time+'-'+this.foods.length});this.foodsVersion=(this.foodsVersion||0)+1;this.choose();if(this.mode!=='flight')this.takeoff();this.note(type.name+' placed — a new scent.');return true;}
+ addFood(x,y,kind='apple'){const type=foodTypes[kind],p={x,y};const surf=surfaces.find(s=>inside(p,s.poly));if(!type||type.strength<=0||!surf||surf.food===false||!Number.isFinite(x)||!Number.isFinite(y)||x<.02||x>.98||y<.02||y>.99)return false;this.foods.push({...p,...type,kind,placed:true,id:'food-'+this.time+'-'+this.foods.length});this.foodsVersion=(this.foodsVersion||0)+1;this.choose();if(this.mode!=='flight')this.takeoff();this.note(type.name+' placed — a new scent.');return true;}
  removeFood(food){const index=this.foods.indexOf(food);if(index<0||!food.placed)return false;this.foods.splice(index,1);this.foodsVersion=(this.foodsVersion||0)+1;if(this.target===food){this.choose();if(this.mode!=='flight')this.takeoff();}this.note(food.name+' removed.');return true;}
  undoFood(){return this.removeFood([...this.foods].reverse().find(f=>f.placed));}
  takeoff(){const airborne=this.mode==='flight';this.transition('flight');if(!airborne){this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;}this.landingBlend=0;}
