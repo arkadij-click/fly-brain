@@ -66,19 +66,14 @@ function wireLaying(){
 wireLaying();
 // The kitchen keeps one save slot in localStorage: auto-saved while playing,
 // restored on load. Personality traits come back exactly from each fly's seed.
-function saveGame(announce=true){
- try{
-  const state=FlyStorage.capture(sim,colony);
-  state.view={followTarget,showTrail,showMap,following,zoom:Number($('zoom').value),speed:Number($('speed').value),daylight:Daylight.mode,eyes:eyeViews};
-  FlyStorage.save(localStorage,state);
-  if(announce)log('Game saved ✓');
-  return true;
- }catch(e){log('Save failed: '+e.message);return false;}
+function buildState(){
+ const state=FlyStorage.capture(sim,colony);
+ state.view={followTarget,showTrail,showMap,following,zoom:Number($('zoom').value),speed:Number($('speed').value),daylight:Daylight.mode,eyes:eyeViews};
+ state.savedAt=new Date().toISOString();
+ return state;
 }
-function loadGame(){
- const state=FlyStorage.read(localStorage);
- if(!state||!FlyStorage.restore(state,sim,colony))return false;
- sim.foodsVersion=(sim.foodsVersion||0)+1;
+function applyState(state){
+ if(!state||state.version!==1||!FlyStorage.restore(state,sim,colony))return false;
  const view=state.view||{};
  followTarget=(view.followTarget==='main'||colony.find(view.followTarget))?view.followTarget:'main';
  showTrail=!!view.showTrail;$('trail').classList.toggle('active',showTrail);
@@ -94,6 +89,43 @@ function loadGame(){
  $('follow-target').value=followTarget;
  refreshFoodTexture();previousPose=FlightArt.pose(sim);colonyPrevious.clear();snapshotColony();
  return true;
+}
+function saveGame(announce=true){
+ try{
+  FlyStorage.save(localStorage,buildState());
+  if(announce)log('Game saved ✓');
+  return true;
+ }catch(e){log('Save failed: '+e.message);return false;}
+}
+function loadGame(){
+ const state=FlyStorage.read(localStorage);
+ if(!state)return false;
+ if(!applyState(state))return false;
+ refreshFoodTexture();previousPose=FlightArt.pose(sim);colonyPrevious.clear();snapshotColony();
+ return true;
+}
+function downloadSave(){
+ try{
+  const blob=new Blob([JSON.stringify(buildState(),null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date(),p2=n=>String(n).padStart(2,'0');
+  a.download='fly-kitchen-'+d.getFullYear()+p2(d.getMonth()+1)+p2(d.getDate())+'-'+p2(d.getHours())+p2(d.getMinutes())+p2(d.getSeconds())+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  log('Save file downloaded — keep it to restore this kitchen later.');
+ }catch(e){log('Save failed: '+e.message);}
+}
+function loadGameFile(file){
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{try{
+  const state=JSON.parse(reader.result);
+  if(!applyState(state))throw new Error('unrecognized save format');
+  FlyStorage.save(localStorage,state);
+  refreshFoodTexture();previousPose=FlightArt.pose(sim);colonyPrevious.clear();snapshotColony();
+  sim.note('Game loaded from file.');
+  log('Save loaded from file — welcome back.');
+ }catch(e){log('Load failed: '+e.message);}};
+ reader.readAsText(file);
 }
 // Phones start with a clean map; the Panel button (or P) opens the instruments sheet.
 if(matchMedia('(max-width:760px)').matches){document.body.classList.add('panel-hidden');$('panel-toggle').classList.add('active');$('panel-toggle').setAttribute('aria-pressed','true');}
@@ -172,8 +204,8 @@ function shoo(){
 }
 $('pause').onclick=()=>{paused=!paused;$('pause').textContent=paused?'▶':'⏸';};$('scare').onclick=()=>shoo();$('trail').onclick=()=>{$('trail').classList.toggle('active',showTrail=!showTrail);};$('map').onclick=()=>{$('map').classList.toggle('active',showMap=!showMap);};$('food').onclick=()=>selectTool(placing?null:'apple');
 $('panel-toggle').onclick=()=>{const hidden=document.body.classList.toggle('panel-hidden');$('panel-toggle').classList.toggle('active',hidden);$('panel-toggle').setAttribute('aria-pressed',String(!hidden));};
-$('save-game').onclick=()=>saveGame(true);
-$('load-game').onclick=()=>log(loadGame()?'Save loaded — welcome back.':'No save found yet.');
+$('save-game').onclick=()=>downloadSave();
+$('load-game').onclick=()=>$('load-file').click();$('load-file').onchange=e=>{loadGameFile(e.target.files[0]);e.target.value='';};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)saveGame(false);});
 window.addEventListener('pagehide',()=>saveGame(false));
 $('reset').onclick=()=>{FlyStorage.clear(localStorage);sim=new Kitchen.Simulation();wireLaying();colony=new FlyLifecycle.Colony();wireLaying();colonyPrevious.clear();visibleColony=new Map();followTarget='main';followSig='';$('follow-target').value='main';history=[];activity=[];brainTime=accumulator=0;previousPose=visiblePose=FlightArt.pose(sim);sim.light=Number($('light').value);sim.wind=Number($('wind').value);refreshFoodTexture();selectTool();retina?.dispose();retina=new FlyVision.AsyncRetina(eyeMap);sampleVision(0);neuralStep();log('A fresh kitchen — the old save was cleared.');};$('light').oninput=()=>{sim.light=Number($('light').value);sampleVision(0);};$('wind').oninput=()=>sim.wind=Number($('wind').value);
