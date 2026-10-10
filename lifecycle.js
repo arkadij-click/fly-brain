@@ -89,7 +89,9 @@ class AdultFly{
  choose(room){
   // Bored, well-fed flies roam to a random spot instead of another meal.
   if(this.hunger<.4&&Math.random()<this.wanderChance){
-   const poly=surfaces[Math.floor(Math.random()*surfaces.length)].poly,xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
+   // Wander to horizontal spots only: nobody idles on a vertical face, and
+   // never on the very bottom edge of the photograph.
+   const pool=surfaces.filter(s=>s.food!==false),poly=pool[Math.floor(Math.random()*pool.length)].poly,xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
    for(let i=0;i<24;i++){
     const x=Math.min(...xs)+Math.random()*(Math.max(...xs)-Math.min(...xs)),y=Math.min(...ys)+Math.random()*(Math.max(...ys)-Math.min(...ys));
     if(inside({x,y},poly)){this.destination={x,y};this.target=null;return;}
