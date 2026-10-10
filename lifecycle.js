@@ -6,7 +6,7 @@ const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 // Realistic fruit-fly development runs on days; this kitchen compresses one
 // generation into a few simulated minutes so the whole cycle stays watchable.
 const EGG_DURATION=40,LARVA_DURATION=75,PUPA_DURATION=25,MATURATION=120;
-const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=24,MAX_LARVAE=12,MAX_ADULTS=7;
+const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=40,MAX_LARVAE=24,MAX_ADULTS=20;
 // A female starts laying once her body is this developed (and after a couple of meals).
 const LAY_MATURITY=.8;
 function containingSurface(p){for(const s of surfaces)if(inside(p,s.poly))return s;return null;}
@@ -154,7 +154,9 @@ class AdultFly{
 class Colony{
  constructor(){this.eggs=[];this.larvae=[];this.pupae=[];this.adults=[];this.counter=0;this.clutches=0;this.time=0;}
  nextId(prefix){return prefix+'-'+(++this.counter);}
- layClutch(x,y,time){if(this.adults.length>=MAX_ADULTS||this.eggs.length>=MAX_EGGS)return 0;const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Math.min(n,MAX_EGGS-this.eggs.length);for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,r=.004+Math.random()*.014;this.eggs.push(new Egg(x+Math.cos(a)*r,y+Math.sin(a)*r/.5625,time));}this.clutches++;return count;}
+ layClutch(x,y,time){if(this.adults.length>=MAX_ADULTS||this.eggs.length>=MAX_EGGS)return 0;
+const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Math.min(n,MAX_EGGS-this.eggs.length);for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,r=.004+Math.random()*.014;this.eggs.push(new Egg(x+Math.cos(a)*r,y+Math.sin(a)*r/.5625,time));}this.clutches++;return count;}
+ layEgg(x,y,time){if(this.eggs.length>=MAX_EGGS)return false;this.eggs.push(new Egg(x,y,time));return true;}
  update(dt,room,time){this.time=(time??this.time+dt);
   const env={foods:room.foods||[],flies:[...(room.flies||[]),...this.adults,...(room.main?[room.main]:[])]};
   const events=[];
@@ -202,6 +204,6 @@ function drawPupa(c,x,y,size,angle=0){
  c.beginPath();c.ellipse(2,-2,7,3,0,0,Math.PI*2);c.fillStyle='#ffffff14';c.fill();
  c.restore();
 }
-const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawPupa,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY};
+const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawPupa,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE};
 if(typeof module!=='undefined')module.exports=api;else root.FlyLifecycle=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

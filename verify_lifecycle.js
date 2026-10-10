@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 const {Simulation}=require('./simulation');
-const {Colony,Egg,Maggot,Pupa,AdultFly,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY}=require('./lifecycle');
+const {Colony,Egg,Maggot,Pupa,AdultFly,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE}=require('./lifecycle');
 const {pose,interpolate}=require('./flight-art');
 const inside=require('./simulation').inside,surfaces=require('./simulation').surfaces;
 
@@ -45,7 +45,8 @@ assert(target.escape===0,'escape subsides');
 
 // Population caps keep the kitchen from collapsing under infinite clutches.
 for(let i=0;i<200;i++)colony.layClutch(.3,.6,i);
-assert(colony.eggs.length<=24,'egg cap holds');
+assert(colony.eggs.length<=40,'egg cap holds');
+assert(colony.layEgg(.3,.62,1)===false||colony.eggs.length<=40,'manual eggs respect the cap too');
 
 // Every adult carries its own personality: gaits, weaving and appetites differ.
 const one=new AdultFly(.5,.5,0,'fly-u1'),two=new AdultFly(.5,.5,0,'fly-u2');
@@ -74,13 +75,13 @@ assert(maleClutches===0,'males never lay');
 
 // Nothing dies: a hatching egg waits for nursery space instead of being destroyed.
 const wait=new Colony();
-for(let i=0;i<12;i++){const m=new Maggot(.3+i*.001,.6,i,'m-w'+i);m.age=LARVA_DURATION*.5;wait.larvae.push(m);}
+for(let i=0;i<MAX_LARVAE;i++){const m=new Maggot(.3+i*.001,.6,i,'m-w'+i);m.age=LARVA_DURATION*.5;wait.larvae.push(m);}
 const patient=new Egg(.32,.63,0);patient.age=EGG_DURATION+1;wait.eggs.push(patient);
 wait.update(1/60,nursery,1);
 assert(wait.eggs.length===1,'a hatching egg waits when the nursery is full');
 wait.larvae.splice(0,1);
 wait.update(1/60,nursery,1.1);
-assert(wait.eggs.length===0&&wait.larvae.length===12,'the waiting egg hatches once space frees');
+assert(wait.eggs.length===0&&wait.larvae.length===MAX_LARVAE,'the waiting egg hatches once space frees');
 
 // Flies scatter: a food already mobbed loses appeal, so equal flies split up.
 const crowdRoom={foods:[{x:.4,y:.5,strength:1.5,name:'left dish'},{x:.6,y:.5,strength:1.5,name:'right dish'}],flies:[]};
