@@ -51,6 +51,7 @@ assert(colony.layEgg(.3,.62,1)===false||colony.eggs.length<=80,'manual eggs resp
 // Every adult carries its own personality: gaits, weaving and appetites differ.
 const one=new AdultFly(.5,.5,0,'fly-u1'),two=new AdultFly(.5,.5,0,'fly-u2');
 assert(one.walkSpeed!==two.walkSpeed||one.weaveAmp!==two.weaveAmp,'colony flies are not clones');
+assert(one.name&&one.name!==two.name,'every hatchling carries its own name');
 assert(one.pose().time!==two.pose().time,'wing/leg animation phases differ');
 const inputs=one.senseInputs({foods:[{x:.3,y:.5,strength:1.2}]});
 assert.equal(inputs.length,7);assert(inputs.every(Number.isFinite),'senseInputs yields seven finite channels');

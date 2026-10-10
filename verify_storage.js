@@ -38,6 +38,7 @@ for(const f of colony.adults){
  const twin=colony2.adults.find(x=>x.id===f.id);
  assert(twin,'adult '+f.id+' is restored');
  assert.equal(twin.sex,f.sex,'sex survives');
+ assert.equal(twin.name,f.name,'the generated name survives');
  assert.equal(+twin.maturity.toFixed(4),+f.maturity.toFixed(4),'maturity survives');
  assert.equal(+twin.walkSpeed.toFixed(6),+f.walkSpeed.toFixed(6),'personality re-derives from the seed');
  assert.equal(+twin.feedDuration.toFixed(6),+f.feedDuration.toFixed(6),'feeding temperament survives');

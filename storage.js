@@ -22,9 +22,9 @@ function capture(sim,colony){
   colony:{
    counter:colony.counter,clutches:colony.clutches,time:colony.time,
    eggs:colony.eggs.map(e=>({x:e.x,y:e.y,born:e.born,age:e.age})),
-   larvae:colony.larvae.map(m=>({id:m.id,x:m.x,y:m.y,born:m.born,age:m.age,heading:m.heading,size:m.size,seed:m.seed})),
+   larvae:colony.larvae.map(m=>({id:m.id,name:m.name,x:m.x,y:m.y,born:m.born,age:m.age,heading:m.heading,size:m.size,seed:m.seed})),
    pupae:colony.pupae.map(p=>({id:p.id,x:p.x,y:p.y,born:p.born,age:p.age})),
-   adults:colony.adults.map(f=>({id:f.id,seed:f.seed,sex:f.sex,mealsSinceLay:f.mealsSinceLay,
+   adults:colony.adults.map(f=>({id:f.id,name:f.name,seed:f.seed,sex:f.sex,mealsSinceLay:f.mealsSinceLay,
     x:f.x,y:f.y,z:f.z,vx:f.vx,vy:f.vy,heading:f.heading,time:f.time,age:f.age,maturity:f.maturity,mode:f.mode,
     hunger:f.hunger,energy:f.energy,alert:f.alert,escape:f.escape,escapeHeading:f.escapeHeading,
     bank:f.bank,turnRate:f.turnRate,verticalSpeed:f.verticalSpeed,landingBlend:f.landingBlend,touchdown:f.touchdown,
@@ -46,17 +46,17 @@ function restore(state,sim,colony){
  colony.counter=c.counter||0;colony.clutches=c.clutches||0;colony.time=c.time||s.time||0;
  colony.eggs=(c.eggs||[]).map(e=>{const egg=new Egg(e.x,e.y,e.born);egg.age=e.age||0;return egg;});
  colony.larvae=(c.larvae||[]).map(m=>{const mag=new Maggot(m.x,m.y,m.born,m.id);mag.setSeed(m.seed??mag.seed);
-  Object.assign(mag,{age:m.age||0,heading:m.heading??mag.heading,size:m.size??.22,x:m.x,y:m.y});return mag;});
+  Object.assign(mag,{name:m.name||mag.name,age:m.age||0,heading:m.heading??mag.heading,size:m.size??.22,x:m.x,y:m.y});return mag;});
  colony.pupae=(c.pupae||[]).map(p=>{const pu=new Pupa(p.x,p.y,p.born,p.id);pu.age=p.age||0;return pu;});
  colony.adults=(c.adults||[]).map(a=>{
-  const fly=new AdultFly(a.x,a.y,a.time,a.id);
+  const fly=new AdultFly(a.x,a.y,a.time,a.id,a.name);
   fly.setSeed(a.seed??fly.seed);fly.sex=a.sex==='male'?'male':'female';fly.mealsSinceLay=a.mealsSinceLay||0;
   fly.onLay=(x,y)=>{const n=colony.layClutch(x,y,colony.time);if(n&&colony.onClutch)colony.onClutch(fly,n);};
   Object.assign(fly,{x:a.x,y:a.y,z:a.z||0,vx:a.vx||0,vy:a.vy||0,heading:a.heading??fly.heading,time:a.time||0,
    age:a.age||0,maturity:a.maturity??.5,mode:a.mode||'flight',hunger:a.hunger??.65,energy:a.energy??.75,
    alert:a.alert||0,escape:a.escape||0,escapeHeading:a.escapeHeading??0,bank:a.bank||0,turnRate:a.turnRate||0,
    verticalSpeed:a.verticalSpeed||0,landingBlend:a.landingBlend||0,touchdown:a.touchdown||0,
-   airtime:a.airtime||0,landings:a.landings||0,meals:a.meals||0,sinceMeal:a.sinceMeal||0,travel:a.travel||0,
+   name:a.name||fly.name,airtime:a.airtime||0,landings:a.landings||0,meals:a.meals||0,sinceMeal:a.sinceMeal||0,travel:a.travel||0,
    target:(a.targetIndex>=0&&sim.foods[a.targetIndex])||null,
    destination:a.destination?{...a.destination}:{...fly.destination}});
   return fly;});

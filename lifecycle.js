@@ -7,6 +7,11 @@ const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 // generation into a few simulated minutes so the whole cycle stays watchable.
 const EGG_DURATION=40,LARVA_DURATION=75,PUPA_DURATION=25,MATURATION=120;
 const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=80,MAX_LARVAE=48,MAX_ADULTS=40;
+// Every hatchling gets a name of its own, derived from its personality seed
+// so saves restore it exactly. Boys are a touch more common than girls.
+const NAME_A=['Bu','Zi','Mi','Ko','Lu','Fu','Ra','Ni','Go','Pe','Dzi','Ta'];
+const NAME_B=['zik','ba','mila','sha','rik','nka','bo','zik','za','lya','funya','sya'];
+function makeName(seed){return NAME_A[Math.floor(seed*977)%NAME_A.length]+NAME_B[Math.floor(seed*331)%NAME_B.length];}
 // A female starts laying once her body is this developed (and after a couple of meals).
 const LAY_MATURITY=.8;
 function containingSurface(p){for(const s of surfaces)if(inside(p,s.poly))return s;return null;}
@@ -17,10 +22,10 @@ class Egg{
  update(dt){this.age+=dt;return this.age>=EGG_DURATION?'hatch':null;}
 }
 class Maggot{
- constructor(x,y,time,id){Object.assign(this,onSurface({x,y}));this.id=id;this.born=time;this.age=0;this.heading=Math.random()*Math.PI*2;this.size=.22;this.name='Maggot '+id.split('-').pop();this.setSeed(Math.random());}
+ constructor(x,y,time,id){Object.assign(this,onSurface({x,y}));this.id=id;this.born=time;this.age=0;this.heading=Math.random()*Math.PI*2;this.size=.22;this.setSeed(Math.random());this.name=makeName(this.seed);}
  // Each larva gets its own pace, wiggle and sense of a comfortable feeding spot.
  // The whole personality follows from the seed, so a save can restore it exactly.
- setSeed(seed){this.seed=seed;this.bias=(seed-.5)*1.6;this.comfort=.012+seed*.05;this.speedFactor=.8+seed*.5;this.wiggleFreq=4.5+seed*4;}
+ setSeed(seed){this.seed=seed;this.bias=(seed-.5)*1.6;this.comfort=.012+seed*.05;this.speedFactor=.8+seed*.5;this.wiggleFreq=4.5+seed*4;this.name=makeName(seed);}
  // Larvae burrow toward the strongest scent, flexing side to side as they go,
  // but once close enough they stop shoving into the crowd and wander instead.
  update(dt,room){
@@ -41,19 +46,20 @@ class Maggot{
  }
 }
 class Pupa{
- constructor(x,y,time,id){Object.assign(this,onSurface({x,y}));this.id=id;this.born=time;this.age=0;}
+ constructor(x,y,time,id,name){Object.assign(this,onSurface({x,y}));this.id=id;this.name=name||('Pupa '+id.split('-').pop());this.born=time;this.age=0;}
  update(dt){this.age+=dt;return this.age>=PUPA_DURATION?'emerge':null;}
 }
 // A colony adult keeps the same pose contract as the main Simulation fly, so
 // the follow camera and FlightArt draw it without any special casing. Each one
 // also carries a personality seed: no two flies move or decide quite alike.
 class AdultFly{
- constructor(x,y,time,id){
-  this.id=id;this.name='Fly '+id.split('-').pop();
-  this.sex=Math.random()<.5?'female':'male';
+ constructor(x,y,time,id,name){
+  this.id=id;
+  this.sex=Math.random()<.4?'female':'male';
   this.mealsSinceLay=0;
   this.x=x;this.y=y;this.z=0;this.vx=0;this.vy=0;this.heading=Math.random()*Math.PI*2;this.time=time;this.age=0;this.maturity=0;this.mode='flight';this.hunger=.65;this.energy=.75;this.alert=0;this.escape=0;this.bank=0;this.turnRate=0;this.verticalSpeed=0;this.landingBlend=0;this.touchdown=0;this.airtime=0;this.landings=0;this.meals=0;this.sinceMeal=0;this.travel=0;this.target=null;this.destination={x,y:y-.06};this.escapeHeading=0;
   this.setSeed(Math.random());
+  this.name=name||makeName(this.seed);
   this.maturity=.35+.25*this.seed;
  }
  // Personality is a pure function of the seed: saves restore it exactly.
@@ -160,9 +166,9 @@ const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Mat
  update(dt,room,time){this.time=(time??this.time+dt);
   const env={foods:room.foods||[],flies:[...(room.flies||[]),...this.adults,...(room.main?[room.main]:[])]};
   const events=[];
-  for(let i=this.eggs.length-1;i>=0;i--){if(this.larvae.length>=MAX_LARVAE)break;if(this.eggs[i].update(dt)==='hatch'){const egg=this.eggs.splice(i,1)[0];this.larvae.push(new Maggot(egg.x,egg.y,this.time,this.nextId('maggot')));events.push('An egg hatched into a maggot.');}}
-  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];if(m.update(dt,env)==='pupate'){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id));events.push(m.name+' pupated — the metamorphosis begins.');}}
-  for(let i=this.pupae.length-1;i>=0;i--){const p=this.pupae[i];if(p.update(dt)==='emerge'){this.pupae.splice(i,1);const fly=new AdultFly(p.x,p.y,this.time,p.id);
+  for(let i=this.eggs.length-1;i>=0;i--){if(this.larvae.length>=MAX_LARVAE)break;if(this.eggs[i].update(dt)==='hatch'){const egg=this.eggs.splice(i,1)[0];const m=new Maggot(egg.x,egg.y,this.time,this.nextId('maggot'));this.larvae.push(m);events.push('🥁 '+m.name+' ('+(m.seed<.4?'♀':'♂')+') hatched from an egg — a tiny worm with a big appetite.');}}
+  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];if(m.update(dt,env)==='pupate'){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id,m.name));events.push(m.name+' pupated — the metamorphosis begins.');}}
+  for(let i=this.pupae.length-1;i>=0;i--){const p=this.pupae[i];if(p.update(dt)==='emerge'){this.pupae.splice(i,1);const fly=new AdultFly(p.x,p.y,this.time,p.id,p.name);
    // Nothing in this kitchen dies: a mature female simply starts a clutch of her own.
    fly.onLay=(x,y)=>{const n=this.layClutch(x,y,this.time);if(n&&this.onClutch)this.onClutch(fly,n);};
    this.adults.push(fly);events.push(fly.name+' ('+(fly.sex==='female'?'♀':'♂')+') emerged from the pupa and took off!');}}
