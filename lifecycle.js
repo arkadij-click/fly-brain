@@ -99,12 +99,18 @@ class AdultFly{
  choose(room){
   // Bored, well-fed flies roam to a random spot instead of another meal.
   if(this.hunger<.4&&Math.random()<this.wanderChance){
-   // Wander to horizontal spots only: nobody idles on a vertical face, and
-   // never on the very bottom edge of the photograph.
-   const pool=surfaces.filter(s=>s.food!==false),poly=pool[Math.floor(Math.random()*pool.length)].poly,xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
-   for(let i=0;i<24;i++){
+   // Wander to horizontal spots only: nobody idles on a vertical face. Big
+   // surfaces get proportionally more idlers, and every fly keeps a little
+   // personal space instead of piling into one corner.
+   const pool=surfaces.filter(s=>s.food!==false),areas=pool.map(s=>{const p=s.poly;let a=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];a+=p[i][0]*q[1]-q[0]*p[i][1];}return Math.abs(a)/2;}),total=areas.reduce((v,a)=>v+a,0);
+   for(let tries=0;tries<24;tries++){
+    let pick=Math.random()*total,poly=pool[pool.length-1].poly;
+    for(let i=0;i<pool.length;i++){pick-=areas[i];if(pick<=0){poly=pool[i].poly;break;}}
+    const xs=poly.map(p=>p[0]),ys=poly.map(p=>p[1]);
     const x=Math.min(...xs)+Math.random()*(Math.max(...xs)-Math.min(...xs)),y=Math.min(...ys)+Math.random()*(Math.max(...ys)-Math.min(...ys));
-    if(inside({x,y},poly)){this.destination={x,y};this.target=null;return;}
+    if(!inside({x,y},poly))continue;
+    if((room.flies||[]).some(o=>o!==this&&distance({x,y},o)<.05))continue;
+    this.destination={x,y};this.target=null;return;
    }
   }
   // Crowding: a food already mobbed by others loses its appeal, and so does
