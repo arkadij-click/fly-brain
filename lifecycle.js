@@ -211,7 +211,7 @@ function maggotSprite(mutant){
  if(mSprites[key])return mSprites[key];
  const cv=document.createElement('canvas');cv.width=M_SPR;cv.height=M_SPR;
  const g=cv.getContext('2d');g.translate(M_SPR/2,M_SPR/2);
- drawMaggotDetailed(g,M_SPR/2,M_SPR/2,M_SPR/3.4,-Math.PI/2,1.7,1,mutant);
+ drawMaggotDetailed(g,M_SPR/2,M_SPR/2,M_SPR/3.4,0,1.7,1,mutant);
  mSprites[key]=cv;return cv;
 }
 function drawMaggot(c,x,y,size,heading,time,progress=1,mutant=false){
