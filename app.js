@@ -12,7 +12,7 @@ const camera=new FlyCamera.FollowCamera();
 let colony=new FlyLifecycle.Colony(),followTarget='main',followSig='';
 let colonyPrevious=new Map(),visibleColony=new Map();
 const clamp01=v=>Math.max(0,Math.min(1,v));
-let autoSave=0,brainVisible=false,brainCompute=0,brainDraw=1;
+let autoSave=0,brainVisible=false,brainCompute=0,brainDraw=1,lastMainTap=0,lastMainLay=-9;
 const soundtrack=new FlySound.KitchenAudio();
 let previousPose=FlightArt.pose(sim),visiblePose=FlightArt.pose(sim);
 const log=(message)=>{$('hint').textContent=message;};
@@ -168,7 +168,7 @@ function ui(){const w=instrumentTarget();$('outside-status').textContent=Dayligh
  $('colony-status').textContent='Colony: '+plural(c.eggs,'egg')+' · '+plural(c.larvae,'maggot')+' · '+plural(c.pupae,'pupa','pupae')+' · '+plural(c.adults,'adult')+(c.eggs+c.larvae+c.pupae+c.adults===0?' — let the main fly eat well and she will lay eggs':'');}
 function audio(){soundtrack.update(sim,paused);document.querySelector('.audio-dock summary').classList.toggle('audio-on',soundtrack.enabled);if(soundtrack.enabled){const channels=[soundtrack.music?'music':null,soundtrack.effects?'buzzing and kitchen sounds':null].filter(Boolean);$('sound-status').textContent=paused?'Audio paused':channels.length?'Playing: '+channels.join(' + '):'Channels muted';}}
 let uiTime=0;
-function frame(now){const minute=Math.floor(Date.now()/60000);if(minute!==wallClockMinute){wallClockMinute=minute;wallClockText=RoomDetails.actualTime();refreshFoodTexture();}const elapsed=last===null?0:Math.min(.1,(now-last)/1000);last=now;if(!paused){accumulator+=elapsed*Number($('speed').value);while(accumulator>=1/60){previousPose=FlightArt.pose(sim);snapshotColony();sim.step(1/60);for(const message of colony.update(1/60,{foods:sim.foods,main:sim},sim.time))sim.note(message);const instrument=instrumentTarget();if(instrument!==sim)sim.inputs=instrument.senseInputs({foods:sim.foods});sampleVision(1/60);brainTime+=1/60;if(brainTime>=.05){brainTime-=.05;neuralStep();}accumulator-=1/60;}}visiblePose=paused?FlightArt.pose(sim):FlightArt.interpolate(previousPose,FlightArt.pose(sim),accumulator*60);visibleColony=collectColony(clamp01(accumulator*60));if(followTarget!=='main'&&!colony.find(followTarget)){followTarget='main';$('follow-target').value='main';}const followed=followTarget==='main'?visiblePose:visibleColony.get(followTarget);camera.update(placing?{x:camera.x,y:camera.y,z:0}:followed??visiblePose,elapsed,following,Number($('zoom').value),sceneViewW,sceneViewH);if(!flyView)renderScene();const panelHidden=!flyView&&document.body.classList.contains('panel-hidden');brainVisible=!panelHidden&&!flyView;if(brainVisible){brainCompute+=elapsed;if(brainCompute>=.25){brainCompute=0;decorateBrain();}}eyeTime+=elapsed;if(eyeTime>=1/30||last===now&&elapsed===0){if(panelHidden)renderMiniroom();else{if(eyeViews||flyView)renderEyes();renderMiniroom();if(!flyView){renderLens();brainDraw+=elapsed;if(brainDraw>=.2){brainDraw=0;renderBrain();}}}eyeTime=0;}uiTime+=elapsed;if(uiTime>=.1||elapsed===0){ui();uiTime=0;}audio();autoSave+=elapsed;if(autoSave>8){autoSave=0;saveGame(false);}requestAnimationFrame(frame);}
+function frame(now){const minute=Math.floor(Date.now()/60000);if(minute!==wallClockMinute){wallClockMinute=minute;wallClockText=RoomDetails.actualTime();refreshFoodTexture();}const elapsed=last===null?0:Math.min(.1,(now-last)/1000);last=now;if(!paused){accumulator+=elapsed*Number($('speed').value);while(accumulator>=1/60){previousPose=FlightArt.pose(sim);snapshotColony();sim.step(1/60);for(const message of colony.update(1/60,{foods:sim.foods,main:sim},sim.time))sim.note(message);const instrument=instrumentTarget();if(instrument!==sim)sim.inputs=instrument.senseInputs({foods:sim.foods});sampleVision(1/60);brainTime+=1/60;if(brainTime>=.05){brainTime-=.05;neuralStep();}accumulator-=1/60;}}visiblePose=paused?FlightArt.pose(sim):FlightArt.interpolate(previousPose,FlightArt.pose(sim),accumulator*60);visibleColony=collectColony(clamp01(accumulator*60));if(followTarget!=='main'&&!colony.find(followTarget)){followTarget='main';$('follow-target').value='main';}const followed=followTarget==='main'?visiblePose:visibleColony.get(followTarget);camera.update(placing?{x:camera.x,y:camera.y,z:0}:followed??visiblePose,elapsed,following,Number($('zoom').value),sceneViewW,sceneViewH);if(!flyView)renderScene();const panelHidden=!flyView&&document.body.classList.contains('panel-hidden');brainVisible=!panelHidden&&!flyView;if(brainVisible){brainCompute+=elapsed;if(brainCompute>=.25){brainCompute=0;decorateBrain();}}eyeTime+=elapsed;if(eyeTime>=1/30||last===now&&elapsed===0){if(panelHidden)renderMiniroom();else{if(eyeViews||flyView)renderEyes();renderMiniroom();if(!flyView){renderLens();brainDraw+=elapsed;if(brainDraw>=.2){brainDraw=0;renderBrain();}}}eyeTime=0;}uiTime+=elapsed;if(uiTime>=.1||elapsed===0){ui();uiTime=0;}audio();sim.poke=Math.max(0,(sim.poke||0)-elapsed*1.2);autoSave+=elapsed;if(autoSave>8){autoSave=0;saveGame(false);}requestAnimationFrame(frame);}
 function syncEyeToggle(){$('eye-toggle').classList.toggle('active',eyeViews);$('eye-toggle').setAttribute('aria-pressed',String(eyeViews));document.querySelector('.eye-grid').style.display=eyeViews?'':'none';$('eye-off-note').hidden=eyeViews;}
 syncEyeToggle();
 $('eye-toggle').onclick=()=>{eyeViews=!eyeViews;syncEyeToggle();if(eyeViews)renderEyes();};
@@ -233,7 +233,26 @@ const liftPinch=e=>{pinch.pointers.delete(e.pointerId);if(pinch.pointers.size<2)
 canvas.addEventListener('pointerup',liftPinch);canvas.addEventListener('pointercancel',liftPinch);
 canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}else{const ei=colony.eggs.findIndex(e=>Kitchen.distance(p,e)<.03);if(ei>=0){colony.eggs.splice(ei,1);}} }else if(placing){
  if(foodKind==='egg'){if(colony.layEgg(p.x,p.y,sim.time)){sim.note('An egg placed by hand.');selectTool();}else log('The brood is at capacity — eggs are waiting to hatch.');}
- else if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{const picked=pickMember(p);if(picked)setFollowTarget(picked);else{colony.scare(p.x,p.y);scareWithSound(p.x,p.y,Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.10);}}};
+ else if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{
+ const picked=pickMember(p);
+ if(picked){
+  setFollowTarget(picked);
+  const now=performance.now();
+  if(picked==='main'){
+   sim.poke=1;
+   if(now-lastMainTap<700&&sim.time-lastMainLay>2){lastMainLay=sim.time;if(colony.layEgg(sim.x,sim.y,sim.time))sim.note('🥚 The main fly ♀ laid an egg by hand.');}
+   lastMainTap=now;
+  }else{
+   const fly=colony.find(picked);
+   if(fly&&fly.poke!==undefined){
+    fly.poke=1;
+    if(fly.sex==='female'&&now-(fly.lastTap||0)<700&&now-(fly.lastLay||-9e9)>2000){fly.lastLay=now;if(colony.layEgg(fly.x,fly.y,sim.time))sim.note('🥚 '+fly.name+' ♀ laid an egg by hand.');}
+    if(fly.sex==='male'&&now-(fly.lastTap||0)<700)sim.note(fly.name+' ♂ is a boy — no eggs from him.');
+    fly.lastTap=now;
+   }
+  }
+ }else{colony.scare(p.x,p.y);scareWithSound(p.x,p.y,Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.10);}
+}};
 let previousPointer=null,lastScare=-10;canvas.onpointermove=e=>{if(flyView||pinch.pointers.size>1)return;let p=point(e),now=performance.now()/1000;pointerWorld=p;if(previousPointer&&!paused&&!placing){let velocity=Math.hypot(p.x-previousPointer.x,p.y-previousPointer.y)/Math.max(.01,now-previousPointer.time);if(velocity>.65&&Math.hypot(p.x-sim.x,(p.y-(sim.y-sim.z))*.5625)<.07&&sim.time-lastScare>2){sim.scare(p.x,p.y);lastScare=sim.time;}}previousPointer={...p,time:now};};canvas.onpointerleave=()=>{previousPointer=null;pointerWorld=null;};
 function clearTextSelection(){const selection=window.getSelection();if(selection&&!selection.isCollapsed)selection.removeAllRanges();}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('dialog,input[type=text],textarea,[contenteditable=true]'))clearTextSelection();});

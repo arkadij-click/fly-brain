@@ -2,7 +2,7 @@
 'use strict';
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 function pose(s){return {x:s.x,y:s.y,z:s.z,heading:s.heading,time:s.time,mode:s.mode,bank:s.bank||0,verticalSpeed:s.verticalSpeed||0,landingBlend:s.landingBlend||0,touchdown:s.touchdown||0,age:s.age};}
-function interpolate(a,b,t){t=clamp(t);const p={...b};for(const key of ['x','y','z','time','bank','verticalSpeed','landingBlend','touchdown'])p[key]=a[key]+(b[key]-a[key])*t;const turn=Math.atan2(Math.sin(b.heading-a.heading),Math.cos(b.heading-a.heading));p.heading=a.heading+turn*t;return p;}
+function interpolate(a,b,t){t=clamp(t);const p={...b};for(const key of ['x','y','z','time','bank','verticalSpeed','landingBlend','touchdown','poke'])p[key]=a[key]+(b[key]-a[key])*t;const turn=Math.atan2(Math.sin(b.heading-a.heading),Math.cos(b.heading-a.heading));p.heading=a.heading+turn*t;return p;}
 function ellipse(c,x,y,rx,ry,color,angle=0,stroke){c.beginPath();c.ellipse(x,y,rx,ry,angle,0,Math.PI*2);c.fillStyle=color;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=.55;c.stroke();}}
 function draw(c,x,y,size,angle,time,mode,p={}){
  const flying=mode==='flight',walking=mode==='walking',grooming=mode==='grooming',bank=p.bank||0,reach=flying?.23+.77*(p.landingBlend||0):1;

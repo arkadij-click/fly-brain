@@ -115,10 +115,10 @@ class AdultFly{
    this.destination={x:this.target.x+Math.cos(this.landingAngle)*this.landingRing,y:this.target.y+Math.sin(this.landingAngle)*this.landingRing};
   }else{const x=.58+Math.random()*.32;this.destination={x,y:.448+(x-.554)*.317};}
  }
- scare(x,y){const dx=this.x-x,dy=(this.y-y)*.5625;if(Math.hypot(dx,dy)>.12)return false;this.escapeHeading=Math.hypot(dx,dy)<.005?this.heading+(Math.random()<.5?-1:1)*(1.1+this.seed):Math.atan2(dy,dx)+(this.seed-.5)*2;this.alert=1;this.escape=1.5;if(this.mode!=='flight'){this.mode='flight';this.age=0;this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;this.z=0;}this.landingBlend=0;return true;}
+ scare(x,y){const dx=this.x-x,dy=(this.y-y)*.5625;if(Math.hypot(dx,dy)>.12)return false;this.escapeHeading=Math.hypot(dx,dy)<.005?this.heading+(Math.random()<.5?-1:1)*(1.1+this.seed):Math.atan2(dy,dx)+(this.seed-.5)*2;this.alert=1;this.escape=1.5;this.poke=1;if(this.mode!=='flight'){this.mode='flight';this.age=0;this.vx=Math.cos(this.heading)*.008;this.vy=Math.sin(this.heading)*.008;this.verticalSpeed=0;this.z=0;}this.landingBlend=0;return true;}
  update(dt,room){
   dt=Math.min(dt,.05);const previous={x:this.x,y:this.y};
-  this.time+=dt;this.age+=dt;this.sinceMeal+=dt;this.maturity=clamp(this.maturity+dt/MATURATION);this.alert=Math.max(0,this.alert-dt*.38);this.escape=Math.max(0,this.escape-dt);this.hunger=clamp(this.hunger+dt*.004);
+  this.time+=dt;this.age+=dt;this.sinceMeal+=dt;this.maturity=clamp(this.maturity+dt/MATURATION);this.alert=Math.max(0,this.alert-dt*.38);this.escape=Math.max(0,this.escape-dt);this.hunger=clamp(this.hunger+dt*.004);this.poke=Math.max(0,(this.poke||0)-dt*1.2);
   if(this.mode==='flight'){
    this.airtime+=dt;this.energy=clamp(this.energy-dt*.009);
    const dx=this.destination.x-this.x,dy=(this.destination.y-this.y)*.5625,d=Math.hypot(dx,dy);
