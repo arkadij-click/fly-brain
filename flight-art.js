@@ -17,7 +17,7 @@ function draw(c,x,y,size,angle,time,mode,p){
  // Small-on-screen flies draw from a cached sprite (one drawImage); zoomed-in
  // flies get the full vector art. lod is the camera zoom, set per frame.
  const pose=p||{};
- if(size*(lod||1)<26&&typeof document!=='undefined'){
+ if(size*(lod||1)<64&&typeof document!=='undefined'){
   const spr=sprite(mode==='flight',!!pose.mutant),k=size/72;
   c.save();c.translate(x,y);c.rotate(angle+Math.PI/2);c.drawImage(spr,-80*k,-80*k,160*k,160*k);c.restore();
   return;

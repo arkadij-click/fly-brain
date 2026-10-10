@@ -71,7 +71,8 @@ aside{top:110px;right:18px;width:344px;gap:10px}
 @media(max-width:480px){
  aside{width:calc(100vw - 24px);top:auto;bottom:146px}.eyes-panel{padding:9px}.eye-grid canvas{height:100px}.eyes-header{margin-bottom:6px}.eyes-header h2{font-size:18px}.vision-controls{margin-bottom:6px}.vision-coverage{display:none}.eye-view-controls{margin-bottom:5px}.eye-label{font-size:9px}.instruments{display:none}
  .room-dock{right:68px}.room-dock summary span,.audio-dock summary span{display:none}.room-dock[open]{right:12px}.audio-dock[open]{width:280px}.room-controls{width:280px}
- .camera-controls{top:126px}.caption{max-width:calc(100vw - 90px)}.camera-controls label{font-size:11px}.food-tools button{min-width:35px;padding:6px 7px}.food-tools .brushes{gap:3px}.food-tools{padding:6px;bottom:70px}.food-tools button span{font-size:20px}.toolbar{gap:3px;padding:6px}.toolbar button,.toolbar select{padding:7px 8px}
+ .camera-controls{top:126px}.caption{max-width:calc(100vw - 90px)}.camera-controls label{font-size:11px}.food-tools button{min-width:35px;padding:6px 7px}.food-tools .brushes{gap:3px}.food-tools{padding:6px;bottom:70px}.food-tools button span{font-size:20px}.toolbar{gap:3px;padding:6px}
+#fps-meter{align-self:center;min-width:46px;text-align:center;font-size:12px;color:#9da9a2}.toolbar button,.toolbar select{padding:7px 8px}
  .metrics,.miniroom{display:none}.hud{top:182px;bottom:auto;right:12px}.eyes-panel.expanded{top:52px;right:12px;width:calc(100vw - 24px)}.eyes-panel.expanded .eye-grid{grid-template-columns:1fr}.eyes-panel.expanded .eye-grid canvas{height:min(220px,calc((100dvh - 270px)/2))}
 }
 
@@ -272,6 +273,7 @@ aside .audio-dock[open]{width:100%}
 .toolbar button{width:38px;min-width:38px;padding:0;font-size:17px;display:flex;align-items:center;justify-content:center}
 .toolbar select{width:auto}
 .toolbar{gap:4px}
+#fps-meter{align-self:center;min-width:46px;text-align:center;font-size:12px;color:#9da9a2}
 
 /* Icon-only compact food tools. */
 .food-tools{width:auto;padding:5px}
