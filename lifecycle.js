@@ -6,7 +6,7 @@ const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 // Realistic fruit-fly development runs on days; this kitchen compresses one
 // generation into a few simulated minutes so the whole cycle stays watchable.
 const EGG_DURATION=40,LARVA_DURATION=75,PUPA_DURATION=25,MATURATION=120;
-const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=40,MAX_LARVAE=24,MAX_ADULTS=20;
+const CLUTCH_MIN=2,CLUTCH_MAX=4,MAX_EGGS=80,MAX_LARVAE=48,MAX_ADULTS=40;
 // A female starts laying once her body is this developed (and after a couple of meals).
 const LAY_MATURITY=.8;
 function containingSurface(p){for(const s of surfaces)if(inside(p,s.poly))return s;return null;}
