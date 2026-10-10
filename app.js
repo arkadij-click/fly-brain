@@ -261,6 +261,11 @@ let previousPointer=null,lastScare=-10;canvas.onpointermove=e=>{if(flyView||pinc
 function clearTextSelection(){const selection=window.getSelection();if(selection&&!selection.isCollapsed)selection.removeAllRanges();}
 document.addEventListener('pointerdown',e=>{if(!e.target.closest('dialog,input[type=text],textarea,[contenteditable=true]'))clearTextSelection();});
 document.addEventListener('selectstart',e=>{if(e.target instanceof Element&&!e.target.closest('dialog,input[type=text],textarea,[contenteditable=true]'))e.preventDefault();});
+// Lock the touch viewport: the tablet browser must not pan or pinch-zoom the
+// page (UI chrome slid off-screen). Game gestures are pointer/touch based and
+// unaffected; scrollable panel content is explicitly allowed.
+document.addEventListener('touchmove',e=>{if(!e.target.closest('aside,.audio-dock,.room-dock'))e.preventDefault();},{passive:false});
+document.addEventListener('gesturestart',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){clearTextSelection();selectTool();if(flyView)setFlyView(false);return;}if(e.key.toLowerCase()==='v'&&!e.target.matches('input,select,textarea')){setFlyView(!flyView);return;}if(e.key.toLowerCase()==='p'&&!e.target.matches('input,select,textarea')){$('panel-toggle').click();return;}if(e.target.matches('input,select,button,summary,a'))return;if(e.code==='Space'){e.preventDefault();$('pause').click();}if(e.key.toLowerCase()==='s')$('scare').click();});
 async function boot(){try{
  const restored=loadGame();
