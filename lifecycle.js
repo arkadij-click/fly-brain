@@ -18,7 +18,7 @@ function containingSurface(p){for(const s of surfaces)if(inside(p,s.poly))return
 // Eggs are laid where the fly stands; nudge strays back onto the nearest surface.
 function onSurface(p){let s=containingSurface(p);if(s)return p;let best=null,bestD=Infinity;for(const c of surfaces){const cx=c.poly.reduce((v,q)=>v+q[0],0)/c.poly.length,cy=c.poly.reduce((v,q)=>v+q[1],0)/c.poly.length,d=Math.hypot(p.x-cx,(p.y-cy)*.5625);if(d<bestD){bestD=d;best={x:cx,y:cy};}}for(let i=0;i<24&&!containingSurface(p);i++){p.x+=(best.x-p.x)*.3;p.y+=(best.y-p.y)*.3;}return p;}
 class Egg{
- constructor(x,y,time){Object.assign(this,onSurface({x,y}));this.born=time;this.age=0;}
+ constructor(x,y,time,mutant){Object.assign(this,onSurface({x,y}));this.born=time;this.age=0;this.mutant=!!mutant;}
  update(dt){this.age+=dt;return this.age>=EGG_DURATION?'hatch':null;}
 }
 class Maggot{
@@ -30,10 +30,20 @@ class Maggot{
  // but once close enough they stop shoving into the crowd and wander instead.
  update(dt,room){
   this.age+=dt;this.size=clamp(.22+this.age/LARVA_DURATION*.78);
+  // A dirt pile within reach outpulls any food: larvae love burrowing into
+  // soil, and the ones that make it inside come out mutated.
+  let dirt=null,dirtD=Infinity;
+  for(const d of room.dirts||[]){const dd=distance(this,d);if(dd<.25&&dd<dirtD){dirt=d;dirtD=dd;}}
   let best=null,bestScore=-Infinity;
-  for(const f of room.foods){const score=f.strength/(.12+distance(this,f));if(score>bestScore){bestScore=score;best=f;}}
+  if(!dirt)for(const f of room.foods){const score=f.strength/(.12+distance(this,f));if(score>bestScore){bestScore=score;best=f;}}
   let steer=0;
-  if(best){
+  if(dirt){
+   if(dirtD>=.028){
+    const desired=Math.atan2((dirt.y-this.y)*.5625,dirt.x-this.x);
+    steer=clamp(Math.atan2(Math.sin(desired-this.heading),Math.cos(desired-this.heading))*5,-2.4,2.4);
+   }else steer=Math.sin(this.born)*1.1;
+   if(dirtD<.03)this.mutant=true;
+  }else if(best){
    if(distance(this,best)>=this.comfort){
     const desired=Math.atan2((best.y-this.y)*.5625,best.x-this.x);
     steer=clamp(Math.atan2(Math.sin(desired-this.heading),Math.cos(desired-this.heading))*5,-1.6,1.6);
@@ -46,7 +56,7 @@ class Maggot{
  }
 }
 class Pupa{
- constructor(x,y,time,id,name){Object.assign(this,onSurface({x,y}));this.id=id;this.name=name||('Pupa '+id.split('-').pop());this.born=time;this.age=0;}
+ constructor(x,y,time,id,name,mutant){Object.assign(this,onSurface({x,y}));this.id=id;this.name=name||('Pupa '+id.split('-').pop());this.born=time;this.age=0;this.mutant=!!mutant;}
  update(dt){this.age+=dt;return this.age>=PUPA_DURATION?'emerge':null;}
 }
 // A colony adult keeps the same pose contract as the main Simulation fly, so
@@ -160,20 +170,22 @@ class AdultFly{
  }
 }
 class Colony{
- constructor(){this.eggs=[];this.larvae=[];this.pupae=[];this.adults=[];this.counter=0;this.clutches=0;this.time=0;}
+ constructor(){this.eggs=[];this.larvae=[];this.pupae=[];this.adults=[];this.dirts=[];this.counter=0;this.clutches=0;this.time=0;}
+ addDirt(x,y){if(this.dirts.length>=8)return false;const p=onSurface({x,y});this.dirts.push({x:p.x,y:p.y});return true;}
  nextId(prefix){return prefix+'-'+(++this.counter);}
- layClutch(x,y,time){if(this.adults.length>=MAX_ADULTS||this.eggs.length>=MAX_EGGS)return 0;
-const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Math.min(n,MAX_EGGS-this.eggs.length);for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,r=.004+Math.random()*.014;this.eggs.push(new Egg(x+Math.cos(a)*r,y+Math.sin(a)*r/.5625,time));}this.clutches++;return count;}
+ layClutch(x,y,time,mutant){if(this.adults.length>=MAX_ADULTS||this.eggs.length>=MAX_EGGS)return 0;
+const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Math.min(n,MAX_EGGS-this.eggs.length);for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,r=.004+Math.random()*.014;this.eggs.push(new Egg(x+Math.cos(a)*r,y+Math.sin(a)*r/.5625,time,mutant));}this.clutches++;return count;}
+ layEgg(x,y,time){if(this.eggs.length>=MAX_EGGS)return false;this.eggs.push(new Egg(x,y,time));return true;}
  layEgg(x,y,time){if(this.eggs.length>=MAX_EGGS)return false;this.eggs.push(new Egg(x,y,time));return true;}
  update(dt,room,time){this.time=(time??this.time+dt);
-  const env={foods:room.foods||[],flies:[...(room.flies||[]),...this.adults,...(room.main?[room.main]:[])]};
+  const env={foods:room.foods||[],dirts:this.dirts,flies:[...(room.flies||[]),...this.adults,...(room.main?[room.main]:[])]};
   const events=[];
-  for(let i=this.eggs.length-1;i>=0;i--){if(this.larvae.length>=MAX_LARVAE)break;if(this.eggs[i].update(dt)==='hatch'){const egg=this.eggs.splice(i,1)[0];const m=new Maggot(egg.x,egg.y,this.time,this.nextId('maggot'));this.larvae.push(m);events.push('🥁 '+m.name+' ('+(m.seed<.4?'♀':'♂')+') hatched from an egg — a tiny worm with a big appetite.');}}
-  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];if(m.update(dt,env)==='pupate'){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id,m.name));events.push(m.name+' pupated — the metamorphosis begins.');}}
-  for(let i=this.pupae.length-1;i>=0;i--){const p=this.pupae[i];if(p.update(dt)==='emerge'){this.pupae.splice(i,1);const fly=new AdultFly(p.x,p.y,this.time,p.id,p.name);
+  for(let i=this.eggs.length-1;i>=0;i--){if(this.larvae.length>=MAX_LARVAE)break;if(this.eggs[i].update(dt)==='hatch'){const egg=this.eggs.splice(i,1)[0];const m=new Maggot(egg.x,egg.y,this.time,this.nextId('maggot'),egg.mutant);m.mutantSeen=m.mutant;this.larvae.push(m);events.push((m.mutant?'🧬 ':'🥁 ')+m.name+' ('+(m.seed<.4?'♀':'♂')+') hatched from an egg — a tiny worm with a big appetite.');}}
+  for(let i=this.larvae.length-1;i>=0;i--){const m=this.larvae[i];m.update(dt,env);if(m.mutant&&!m.mutantSeen){m.mutantSeen=true;events.push('🧬 '+m.name+' crawled into the dirt and mutated — blue eyes incoming.');}if(m.age>=LARVA_DURATION){this.larvae.splice(i,1);this.pupae.push(new Pupa(m.x,m.y,this.time,m.id,m.name,m.mutant));events.push(m.name+' pupated — the metamorphosis begins.');}}
+  for(let i=this.pupae.length-1;i>=0;i--){const p=this.pupae[i];if(p.update(dt)==='emerge'){this.pupae.splice(i,1);const fly=new AdultFly(p.x,p.y,this.time,p.id,p.name);fly.mutant=!!p.mutant;
    // Nothing in this kitchen dies: a mature female simply starts a clutch of her own.
-   fly.onLay=(x,y)=>{const n=this.layClutch(x,y,this.time);if(n&&this.onClutch)this.onClutch(fly,n);};
-   this.adults.push(fly);events.push(fly.name+' ('+(fly.sex==='female'?'♀':'♂')+') emerged from the pupa and took off!');}}
+   fly.onLay=(x,y)=>{const n=this.layClutch(x,y,this.time,fly.mutant);if(n&&this.onClutch)this.onClutch(fly,n);};
+   this.adults.push(fly);events.push((fly.mutant?'🧬 ':'')+fly.name+' ('+(fly.sex==='female'?'♀':'♂')+') emerged from the pupa and took off!');}}
   for(const fly of this.adults)fly.update(dt,env);
   return events;
  }
@@ -186,8 +198,8 @@ const n=CLUTCH_MIN+Math.floor(Math.random()*(CLUTCH_MAX-CLUTCH_MIN+1)),count=Mat
 }
 // --- Rendering for the pre-adult stages; adults reuse FlightArt. ---
 function pearl(c,x,y,rx,ry,angle){c.save();c.translate(x,y);c.rotate(angle);c.beginPath();c.ellipse(0,0,rx,ry,0,0,Math.PI*2);c.fillStyle='#f2ecd9';c.fill();c.strokeStyle='#c9c0a4';c.lineWidth=.5;c.stroke();c.beginPath();c.ellipse(-rx*.3,-ry*.3,rx*.35,ry*.3,0,0,Math.PI*2);c.fillStyle='#ffffffcc';c.fill();c.restore();}
-function drawEggs(c,x,y,size,time,seed=0){const count=3+Math.floor(Math.abs(Math.sin(seed)) *2.9);for(let i=0;i<count;i++){const a=seed*7+i*2.4,r=size*.55*Math.sqrt((i+1)/count);pearl(c,x+Math.cos(a+i)*r,y+Math.sin(a+i)*r*.6,size*.34,size*.22,a+i);}}
-function drawMaggot(c,x,y,size,heading,time,progress=1){
+function drawEggs(c,x,y,size,time,seed=0,mutant=false){const count=3+Math.floor(Math.abs(Math.sin(seed)) *2.9);for(let i=0;i<count;i++){const a=seed*7+i*2.4,r=size*.55*Math.sqrt((i+1)/count);c.save();if(mutant){c.filter='hue-rotate(160deg)';}pearl(c,x+Math.cos(a+i)*r,y+Math.sin(a+i)*r*.6,size*.34,size*.22,a+i);c.restore();}}
+function drawMaggot(c,x,y,size,heading,time,progress=1,mutant=false){
  c.save();c.translate(x,y);c.rotate(heading);c.scale(size/40,size/40);
  const flex=Math.sin(time*6)*4*(.3+progress*.7);
  c.lineCap='round';
@@ -196,11 +208,18 @@ function drawMaggot(c,x,y,size,heading,time,progress=1){
  for(let i=segments;i>=0;i--){
   const t=i/segments,wob=Math.sin(time*6-i*.9)*(4*(1-Math.abs(i/segments-.5)*.6));
   const px=-18+i*7,py=wob*(1-progress*.3),r=(3.4+5.2*Math.sin(Math.PI*(1-t*.82)))*(.5+.5*progress);
-  c.beginPath();c.ellipse(px,py,r*.86,r,0,0,Math.PI*2);c.fillStyle=i%2?'#efe5c4':'#e4d7ae';c.fill();
+  c.beginPath();c.ellipse(px,py,r*.86,r,0,0,Math.PI*2);c.fillStyle=(i%2?(mutant?'#c3d4f2':'#efe5c4'):(mutant?'#aec3ec':'#e4d7ae'));c.fill();
  }
  c.strokeStyle='#d3c298';c.lineWidth=.7;for(let i=1;i<segments;i++){const t=i/segments,wob=Math.sin(time*6-i*.9)*3;c.beginPath();c.moveTo(-18+i*7-2,wob);c.lineTo(-18+i*7+2,wob);c.stroke();}
  const headWob=Math.sin(time*6)*3;c.strokeStyle='#4a3d28';c.lineWidth=1.4;c.beginPath();c.moveTo(24,headWob-1);c.lineTo(29,headWob-3);c.moveTo(24,headWob+1);c.lineTo(29,headWob+3);c.stroke();
  c.fillStyle='#2e2a1e';c.beginPath();c.arc(30,headWob,1.1,0,Math.PI*2);c.fill();
+ c.restore();
+}
+function drawDirt(c,x,y,size){
+ c.save();c.translate(x,y);
+ c.fillStyle='#6b4a2b';c.beginPath();c.ellipse(0,0,size*.5,size*.32,0,0,Math.PI*2);c.fill();
+ c.fillStyle='#7d5a35';c.beginPath();c.ellipse(-size*.12,-size*.09,size*.36,size*.24,-.2,0,Math.PI*2);c.fill();
+ c.fillStyle='#8f6a41';for(let i=0;i<8;i++){const a=i*.85+size,rr=size*(.12+((i*37)%10)/26);c.beginPath();c.arc(Math.cos(a)*rr,Math.sin(a)*rr*.55,size*.055,0,Math.PI*2);c.fill();}
  c.restore();
 }
 function drawPupa(c,x,y,size,angle=0){
@@ -212,6 +231,6 @@ function drawPupa(c,x,y,size,angle=0){
  c.beginPath();c.ellipse(2,-2,7,3,0,0,Math.PI*2);c.fillStyle='#ffffff14';c.fill();
  c.restore();
 }
-const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawPupa,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE};
+const api={Colony,Egg,Maggot,Pupa,AdultFly,drawEggs,drawMaggot,drawPupa,drawDirt,EGG_DURATION,LARVA_DURATION,PUPA_DURATION,LAY_MATURITY,MAX_LARVAE};
 if(typeof module!=='undefined')module.exports=api;else root.FlyLifecycle=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

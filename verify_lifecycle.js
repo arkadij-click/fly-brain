@@ -99,6 +99,33 @@ const spreadRoom={foods:[{x:.4,y:.5,strength:1.5},{x:.6,y:.5,strength:1.5}],flie
 const picks=new Set();
 for(let i=0;i<4;i++){const f=new AdultFly(.5,.5,0,'fly-s'+i);f.choose(spreadRoom);spreadRoom.flies.push(f);picks.add(f.target&&f.target.x);}
 assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
-assert(picks.size>=2,'a fresh crowd does not pile onto a single dish');
+
+// Dirt piles mutate larvae that burrow into them; the mutation is heritable.
+const dirtColony=new Colony();dirtColony.addDirt(.5,.58);
+const worm=new Maggot(.5,.585,0,'m-dirt');worm.setSeed(.5);
+const dirtRoom={foods:[{x:.1,y:.1,strength:.4}],flies:[],dirts:dirtColony.dirts};
+for(let i=0;i<60*60&&!worm.mutant;i++)worm.update(1/60,dirtRoom);
+assert(worm.mutant,'larvae that reach the dirt mutate');
+worm.age=LARVA_DURATION;
+const muta=new Colony();muta.dirts=dirtColony.dirts;
+muta.larvae.push(worm);muta.time=1;
+const allEvents=[];
+const step=(secs)=>{for(let i=0;i<secs*60;i++)allEvents.push(...muta.update(1/60,dirtRoom,muta.time+1/60));};
+muta.update(1/60,dirtRoom,1.1);
+assert(muta.pupae.length===1&&muta.pupae[0].mutant,'mutant larvae pupate into mutant pupae');
+step(PUPA_DURATION+5);
+assert(muta.adults.length===1&&muta.adults[0].mutant,'blue-eyed flies emerge from mutant pupae');
+const mutf=muta.adults[0];
+muta.layClutch(.5,.5,3,false);
+assert(muta.eggs.every(e=>!e.mutant),'normal mothers lay normal eggs');
+muta.layClutch(.5,.5,4,false);
+assert(muta.eggs.every(e=>!e.mutant),'hand-laid eggs start clean');
+mutf.onLay(.5,.55,4);
+assert(muta.eggs.filter(e=>e.mutant).length>=2,'mutant mothers lay mutant eggs');
+assert(allEvents.some(t=>t.includes('🧬')),'the mutation is announced in the events');
+const picks2=new Set();
+const spreadRoom2={foods:[{x:.1,y:.1,strength:.6,name:'left'},{x:.7,y:.5,strength:.6,name:'right'}],flies:[...muta.adults]};
+for(let i=0;i<4;i++){const f=new AdultFly(.5,.5,0,'fly-s'+i);f.choose(spreadRoom2);spreadRoom2.flies.push(f);picks2.add(f.target&&f.target.x);}
+assert(picks2.size>=2,'a fresh crowd does not pile onto a single dish');
 
 console.log(JSON.stringify({passed:true,clutches,eggsHatched:colony.clutches,adults:colony.adults.length,femaleClutches}));

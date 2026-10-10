@@ -3,7 +3,7 @@
 const room=typeof module!=='undefined'?require('./room-details'):root.RoomDetails;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const distance=(a,b)=>Math.hypot(a.x-b.x,(a.y-b.y)*.5625);
-const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11},banana:{name:'Banana peel',icon:'🍌',strength:1.8,feedRate:.09},berry:{name:'Strawberry',icon:'🍓',strength:1.5,feedRate:.12},crumbs:{name:'Bread crumbs',icon:'🍞',strength:.65,feedRate:.07},juice:{name:'Juice drop',icon:'🧃',strength:1.7,feedRate:.13},egg:{name:'Egg',icon:'🥚',strength:0,feedRate:0}};
+const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11},banana:{name:'Banana peel',icon:'🍌',strength:1.8,feedRate:.09},berry:{name:'Strawberry',icon:'🍓',strength:1.5,feedRate:.12},crumbs:{name:'Bread crumbs',icon:'🍞',strength:.65,feedRate:.07},juice:{name:'Juice drop',icon:'🧃',strength:1.7,feedRate:.13},egg:{name:'Egg',icon:'🥚',strength:0,feedRate:0},dirt:{name:'Dirt pile',icon:'🟤',strength:0,feedRate:0}};
 // Hand-traced against the 4032 × 2268 kitchen photo, in normalized image coordinates.
 // Front edges stop at the horizontal surface, not the appliance faces below it.
 const surfaces=[

@@ -35,13 +35,14 @@ let sceneViewW=.4,sceneViewH=.4;function renderScene(){const [cw,ch,d]=resize(ca
  const vx=Math.max(cxMin,Math.min(cxMax,camera.x)),vy=Math.max(cyMin,Math.min(cyMax,camera.y));
  ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#090f0c';ctx.fillRect(0,0,cw,ch);ctx.save();ctx.beginPath();ctx.rect(0,0,cw,ch);ctx.clip();ctx.translate(...sceneCenter(cw,ch));ctx.scale(camera.zoom,camera.zoom);ctx.translate(-vx*w,-vy*h);ctx.drawImage(sceneBackground(w,h,d),0,0,w,h);ctx.fillStyle=`rgba(8,16,18,${(1-sim.light)*.28})`;ctx.fillRect(0,0,w,h);
  if(sim.foods.some(f=>f.placed))ctx.drawImage(foodsLayer(w,h,d),0,0,w,h);
+ for(const d of colony.dirts)FlyLifecycle.drawDirt(ctx,d.x*w,d.y*h,Math.max(18,w*.05));
  if(showMap){for(const s of Kitchen.surfaces){ctx.beginPath();s.poly.forEach((p,i)=>i?ctx.lineTo(p[0]*w,p[1]*h):ctx.moveTo(p[0]*w,p[1]*h));ctx.closePath();ctx.fillStyle='#b5e2c418';ctx.fill();ctx.strokeStyle='#d2f0b680';ctx.lineWidth=1;ctx.stroke();}for(const f of sim.foods){ctx.strokeStyle='#d5efb8';ctx.lineWidth=1;ctx.beginPath();ctx.arc(f.x*w,f.y*h,8,0,Math.PI*2);ctx.stroke();ctx.font='11px system-ui';let tw=ctx.measureText(f.name).width;let tx=Math.min(w-tw-12,Math.max(12,f.x*w+13)),ty=f.y*h>h-35?f.y*h-15:f.y*h;ctx.fillStyle='#101c18dd';ctx.fillRect(tx-4,ty-12,tw+8,19);ctx.fillStyle='#e1f2d8';ctx.fillText(f.name,tx,ty+1);}}
  if(showTrail){ctx.lineWidth=1.3;for(let i=1;i<sim.trail.length;i++){let a=sim.trail[i-1],b=sim.trail[i];ctx.strokeStyle=`rgba(230,255,200,${i/sim.trail.length*.6})`;ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();}}
  if(placing&&pointerWorld){const p=pointerWorld,valid=Kitchen.surfaces.some(s=>Kitchen.inside(p,s.poly));if(foodKind)FoodArt.draw(ctx,foodKind,p.x*w,p.y*h,w*.023,.65,{seed:0,light:sim.light});ctx.strokeStyle=valid?'#d7f4a9':'#e6a598';ctx.lineWidth=1/camera.zoom;ctx.beginPath();ctx.arc(p.x*w,p.y*h,10/camera.zoom,0,Math.PI*2);ctx.stroke();}
- for(const e of colony.eggs)FlyLifecycle.drawEggs(ctx,e.x*w,e.y*h,Math.max(7,w*.009),sim.time,e.x*8191+e.y*16381);
+ for(const e of colony.eggs)FlyLifecycle.drawEggs(ctx,e.x*w,e.y*h,Math.max(7,w*.009),sim.time,e.x*8191+e.y*16381,e.mutant);
  for(const pu of colony.pupae)FlyLifecycle.drawPupa(ctx,pu.x*w,pu.y*h,Math.max(10,w*.013));
  for(const cp of visibleColony.values()){
-  if(cp.kind==='maggot')FlyLifecycle.drawMaggot(ctx,cp.x*w,cp.y*h,Math.max(9,w*.013)*(.45+.55*cp.size),cp.heading,sim.time,cp.size);
+  if(cp.kind==='maggot')FlyLifecycle.drawMaggot(ctx,cp.x*w,cp.y*h,Math.max(9,w*.013)*(.45+.55*cp.size),cp.heading,sim.time,cp.size,cp.mutant);
   else if(cp.kind==='adult'){const body=Math.max(12,w*.014)*(.85+cp.y*.35)*(.45+.55*cp.maturity);fly(ctx,cp.x*w,(cp.y-cp.z)*h,body,cp.heading,cp.time,cp.mode,cp);}}
  if(!placing&&followTarget!=='main'){const sel=visibleColony.get(followTarget);if(sel){ctx.strokeStyle='#ffe9a8cc';ctx.lineWidth=1.4/camera.zoom;ctx.beginPath();ctx.ellipse(sel.x*w,(sel.y-sel.z)*h,10/camera.zoom,5/camera.zoom,0,0,Math.PI*2);ctx.stroke();}}
  const p=visiblePose,x=p.x*w,y=(p.y-p.z)*h,body=Math.max(12,w*.014)*(0.85+p.y*.35);ctx.save();ctx.filter=`blur(${1+p.z*24}px)`;ellipse(ctx,x+p.z*w*.025,p.y*h+3,body*(.6+p.z),body*.2,`rgba(0,0,0,${.42/(1+p.z*9)})`);ctx.restore();fly(ctx,x,y,body,p.heading,p.time,p.mode,p);
@@ -149,8 +150,8 @@ function pickMember(p){
 function snapshotColony(){for(const m of colony.larvae)colonyPrevious.set(m.id,{kind:'maggot',x:m.x,y:m.y,heading:m.heading});for(const f of colony.adults)colonyPrevious.set(f.id,f.pose());for(const id of colonyPrevious.keys())if(!colony.find(id))colonyPrevious.delete(id);}
 function collectColony(t){const out=new Map();
  for(const p of colony.pupae)out.set(p.id,{kind:'pupa',x:p.x,y:p.y,z:0});
- for(const m of colony.larvae){const prev=colonyPrevious.get(m.id);if(!prev){out.set(m.id,{kind:'maggot',x:m.x,y:m.y,z:0,heading:m.heading,size:m.size});continue;}const turn=Math.atan2(Math.sin(m.heading-prev.heading),Math.cos(m.heading-prev.heading));out.set(m.id,{kind:'maggot',x:prev.x+(m.x-prev.x)*t,y:prev.y+(m.y-prev.y)*t,z:0,heading:prev.heading+turn*t,size:m.size});}
- for(const f of colony.adults){const prev=colonyPrevious.get(f.id),curr=FlightArt.pose(f);out.set(f.id,{kind:'adult',maturity:f.maturity,...(prev?FlightArt.interpolate(prev,curr,t):curr)});}
+ for(const m of colony.larvae){const prev=colonyPrevious.get(m.id);if(!prev){out.set(m.id,{kind:'maggot',x:m.x,y:m.y,z:0,heading:m.heading,size:m.size,mutant:m.mutant});continue;}const turn=Math.atan2(Math.sin(m.heading-prev.heading),Math.cos(m.heading-prev.heading));out.set(m.id,{kind:'maggot',x:prev.x+(m.x-prev.x)*t,y:prev.y+(m.y-prev.y)*t,z:0,heading:prev.heading+turn*t,size:m.size,mutant:m.mutant});}
+ for(const f of colony.adults){const prev=colonyPrevious.get(f.id),curr=FlightArt.pose(f);out.set(f.id,{kind:'adult',maturity:f.maturity,mutant:f.mutant,...(prev?FlightArt.interpolate(prev,curr,t):curr)});}
  return out;}
 function dot(row,u){let sum=0;for(let j=0;j<7;j++)sum+=row[j]*u[j];return sum;}
 // The fly only steers on two output neurons (672 flops); the 640-cell map is
@@ -231,8 +232,9 @@ canvas.addEventListener('pointerdown',e=>{pinch.pointers.set(e.pointerId,[e.clie
 canvas.addEventListener('pointermove',e=>{if(!pinch.pointers.has(e.pointerId))return;pinch.pointers.set(e.pointerId,[e.clientX,e.clientY]);if(pinch.pointers.size===2&&pinch.startDist>0){const [[ax,ay],[bx,by]]=[...pinch.pointers.values()];const d=Math.hypot(ax-bx,ay-by);if(d>10){$('zoom').value=Math.max(1,Math.min(6,pinch.startZoom*d/pinch.startDist));pinch.moved=true;previousPointer=null;}}});
 const liftPinch=e=>{pinch.pointers.delete(e.pointerId);if(pinch.pointers.size<2)pinch.startDist=0;};
 canvas.addEventListener('pointerup',liftPinch);canvas.addEventListener('pointercancel',liftPinch);
-canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}else{const ei=colony.eggs.findIndex(e=>Kitchen.distance(p,e)<.03);if(ei>=0){colony.eggs.splice(ei,1);}} }else if(placing){
+canvas.onclick=e=>{if(flyView)return;if(pinch.moved){pinch.moved=false;return;}let p=point(e);if(removing){const food=sim.foods.filter(f=>f.placed).sort((a,b)=>Kitchen.distance(p,a)-Kitchen.distance(p,b))[0];if(food&&Kitchen.distance(p,food)<.035&&sim.removeFood(food)){refreshFoodTexture();}else{const ei=colony.eggs.findIndex(e=>Kitchen.distance(p,e)<.03);if(ei>=0){colony.eggs.splice(ei,1);}else{const di=colony.dirts.findIndex(dd=>Kitchen.distance(p,dd)<.05);if(di>=0)colony.dirts.splice(di,1);}} }else if(placing){
  if(foodKind==='egg'){if(colony.layEgg(p.x,p.y,sim.time)){sim.note('An egg placed by hand.');selectTool();}else log('The brood is at capacity — eggs are waiting to hatch.');}
+ else if(foodKind==='dirt'){const surf=Kitchen.surfaces.find(s=>Kitchen.inside(p,s.poly));if(surf&&surf.food!==false&&colony.addDirt(p.x,p.y)){sim.note('A pile of dirt — larvae love it.');selectTool();}else log('Dirt needs a horizontal surface.');}
  else if(sim.addFood(p.x,p.y,foodKind)){refreshFoodTexture();selectTool();}}else{
  const picked=pickMember(p);
  if(picked){

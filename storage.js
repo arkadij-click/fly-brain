@@ -21,10 +21,11 @@ function capture(sim,colony){
   foods:sim.foods.map(f=>({name:f.name,x:f.x,y:f.y,strength:f.strength,feedRate:f.feedRate,kind:f.kind,placed:f.placed,id:f.id})),
   colony:{
    counter:colony.counter,clutches:colony.clutches,time:colony.time,
-   eggs:colony.eggs.map(e=>({x:e.x,y:e.y,born:e.born,age:e.age})),
-   larvae:colony.larvae.map(m=>({id:m.id,name:m.name,x:m.x,y:m.y,born:m.born,age:m.age,heading:m.heading,size:m.size,seed:m.seed})),
+   eggs:colony.eggs.map(e=>({x:e.x,y:e.y,born:e.born,age:e.age,mutant:e.mutant})),
+   larvae:colony.larvae.map(m=>({id:m.id,name:m.name,x:m.x,y:m.y,born:m.born,age:m.age,heading:m.heading,size:m.size,seed:m.seed,mutant:m.mutant})),
+   dirts:colony.dirts.map(d=>({x:d.x,y:d.y})),
    pupae:colony.pupae.map(p=>({id:p.id,x:p.x,y:p.y,born:p.born,age:p.age})),
-   adults:colony.adults.map(f=>({id:f.id,name:f.name,seed:f.seed,sex:f.sex,mealsSinceLay:f.mealsSinceLay,
+   adults:colony.adults.map(f=>({id:f.id,name:f.name,mutant:f.mutant,seed:f.seed,sex:f.sex,mealsSinceLay:f.mealsSinceLay,
     x:f.x,y:f.y,z:f.z,vx:f.vx,vy:f.vy,heading:f.heading,time:f.time,age:f.age,maturity:f.maturity,mode:f.mode,
     hunger:f.hunger,energy:f.energy,alert:f.alert,escape:f.escape,escapeHeading:f.escapeHeading,
     bank:f.bank,turnRate:f.turnRate,verticalSpeed:f.verticalSpeed,landingBlend:f.landingBlend,touchdown:f.touchdown,
@@ -43,13 +44,13 @@ function restore(state,sim,colony){
  sim.trail=(s.trail||[]).slice(-450);
  sim.events=(s.events||[]).slice(0,3);
  const c=state.colony||{};
- colony.counter=c.counter||0;colony.clutches=c.clutches||0;colony.time=c.time||s.time||0;
- colony.eggs=(c.eggs||[]).map(e=>{const egg=new Egg(e.x,e.y,e.born);egg.age=e.age||0;return egg;});
+ colony.counter=c.counter||0;colony.clutches=c.clutches||0;colony.time=c.time||s.time||0;colony.dirts=(c.dirts||[]).map(d=>({...d}));
+ colony.eggs=(c.eggs||[]).map(e=>{const egg=new Egg(e.x,e.y,e.born,e.mutant);egg.age=e.age||0;return egg;});
  colony.larvae=(c.larvae||[]).map(m=>{const mag=new Maggot(m.x,m.y,m.born,m.id);mag.setSeed(m.seed??mag.seed);
-  Object.assign(mag,{name:m.name||mag.name,age:m.age||0,heading:m.heading??mag.heading,size:m.size??.22,x:m.x,y:m.y});return mag;});
+  Object.assign(mag,{name:m.name||mag.name,mutant:!!m.mutant,age:m.age||0,heading:m.heading??mag.heading,size:m.size??.22,x:m.x,y:m.y});return mag;});
  colony.pupae=(c.pupae||[]).map(p=>{const pu=new Pupa(p.x,p.y,p.born,p.id);pu.age=p.age||0;return pu;});
  colony.adults=(c.adults||[]).map(a=>{
-  const fly=new AdultFly(a.x,a.y,a.time,a.id,a.name);
+  const fly=new AdultFly(a.x,a.y,a.time,a.id,a.name,!!a.mutant);
   fly.setSeed(a.seed??fly.seed);fly.sex=a.sex==='male'?'male':'female';fly.mealsSinceLay=a.mealsSinceLay||0;
   fly.onLay=(x,y)=>{const n=colony.layClutch(x,y,colony.time);if(n&&colony.onClutch)colony.onClutch(fly,n);};
   Object.assign(fly,{x:a.x,y:a.y,z:a.z||0,vx:a.vx||0,vy:a.vy||0,heading:a.heading??fly.heading,time:a.time||0,
