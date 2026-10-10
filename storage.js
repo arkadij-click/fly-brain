@@ -2,7 +2,8 @@
 'use strict';
 const lifecycle=typeof module!=='undefined'?require('./lifecycle'):root.FlyLifecycle;
 const {Egg,Maggot,Pupa,AdultFly}=lifecycle;
-const KEY='fly-brain-kitchen-save-v2',VERSION=1;
+let KEY='fly-brain-kitchen-save-v2',VERSION=1;
+function setKey(k){KEY=k;}
 // One save slot in whatever storage the host provides (localStorage in the
 // browser, any get/set/remove object in tests). Everything here is plain data:
 // the main fly, her foods and the whole colony, keyed by stable ids.
@@ -69,6 +70,6 @@ function read(store){
  catch(e){return null;}
 }
 function clear(store){if(store)store.removeItem(KEY);}
-const api={KEY,VERSION,capture,restore,save,read,clear};
+const api={KEY,VERSION,capture,restore,save,read,clear,setKey};
 if(typeof module!=='undefined')module.exports=api;else root.FlyStorage=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
