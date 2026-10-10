@@ -1,6 +1,6 @@
 (function(root){
 'use strict';
-const room=typeof module!=='undefined'?require('./room-details'):root.RoomDetails;
+const scenes=(typeof module!=='undefined'?require('./scenes'):root.KitchenScenes);
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const distance=(a,b)=>Math.hypot(a.x-b.x,(a.y-b.y)*.5625);
 const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11},banana:{name:'Banana peel',icon:'🍌',strength:1.8,feedRate:.09},berry:{name:'Strawberry',icon:'🍓',strength:1.5,feedRate:.12},crumbs:{name:'Bread crumbs',icon:'🍞',strength:.65,feedRate:.07},juice:{name:'Juice drop',icon:'🧃',strength:1.7,feedRate:.13},egg:{name:'Egg',icon:'🥚',strength:0,feedRate:0},dirt:{name:'Dirt pile',icon:'🟤',strength:0,feedRate:0}};
@@ -15,10 +15,11 @@ const surfaces=[
  {name:'Freezer top',poly:[[.452,.525],[.56,.548],[.56,.588],[.452,.562]]},
  {name:'Table',poly:[[.34,.655],[.44,.60],[.55,.597],[.655,.645],[.675,.73],[.63,.86],[.50,.945],[.38,.92],[.325,.80],[.32,.73]]},
 ];
-surfaces.push(room.appleSurface);
+function setSurfaces(list){surfaces.length=0;surfaces.push(...list);}
+surfaces.push(...scenes.surfacesFor(scenes.active));
 function inside(p,poly){let result=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p.y)!==(b[1]>p.y)&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0])result=!result;}return result;}
 class Simulation{
- constructor(seed=783){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.25;this.y=.48;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=[{name:'Fruit on the counter',x:.140,y:.530,strength:1},{...room.apple},{name:'Crumbs on the plate',x:.50,y:.88,strength:.9}];this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.layAt=2;this.onLay=null;this.foodsVersion=0;this.note('A new fly enters the kitchen.');}
+ constructor(seed=783,foods){this.seed=seed;this.time=0;this.energy=.8;this.hunger=.7;this.alert=0;this.x=.25;this.y=.48;this.z=.12;this.vx=.04;this.vy=0;this.heading=0;this.mode='flight';this.age=0;this.airtime=0;this.landings=0;this.meals=0;this.travel=0;this.sinceMeal=0;this.events=[];this.trail=[];this.foods=(foods||scenes.activeScene().foods).map(f=>({...f}));this.target=this.foods[0];this.destination={...this.target};this.inputs=Array(7).fill(0);this.outputs=[0,0];this.light=.7;this.wind=.15;this.escape=0;this.layAt=2;this.onLay=null;this.foodsVersion=0;this.note('A new fly enters the kitchen.');}
  random(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296;}
  note(message){this.events.unshift({time:this.time,message});this.events.length=Math.min(3,this.events.length);}
  transition(mode){this.mode=mode;this.age=0;}
@@ -64,6 +65,6 @@ class Simulation{
  this.travel+=distance(this,previous);this.sense();if(!this.trail.length||this.time-this.trail[this.trail.length-1].t>.12){this.trail.push({x:this.x,y:this.y-this.z,t:this.time});if(this.trail.length>450)this.trail.shift();}
  }
 }
-if(typeof module!=='undefined')module.exports={Simulation,surfaces,inside,distance,foodTypes};else root.Kitchen={Simulation,surfaces,inside,distance,foodTypes};
+if(typeof module!=='undefined')module.exports={Simulation,surfaces,setSurfaces,inside,distance,foodTypes};else root.Kitchen={Simulation,surfaces,setSurfaces,inside,distance,foodTypes};
 })(typeof globalThis!=='undefined'?globalThis:this);
 

@@ -26,7 +26,7 @@ function sceneCenter(w,h){return [w<=480?w*.53:w/2,w<=480?h*.24:h/2];}
 // Painted layers live in caches: the photographed background only changes with
 // the clock or the weather, and the food layer only when food or light change.
 let sceneBg=null,sceneBgKey='',foodLayer=null,foodLayerKey='';
-function sceneBackground(w,h,d){const key=w+'x'+h+'x'+d+'/'+wallClockMinute+'/'+Daylight.mode;if(sceneBgKey!==key||!sceneBg){sceneBg=document.createElement('canvas');sceneBg.width=Math.round(w*d);sceneBg.height=Math.round(h*d);const b=sceneBg.getContext('2d');b.scale(d,d);Daylight.drawPhoto(b,w,h);RoomDetails.drawClock(b,w,h,wallClockText);sceneBgKey=key;}return sceneBg;}
+function sceneBackground(w,h,d){const key=w+'x'+h+'x'+d+'/'+wallClockMinute+'/'+Daylight.mode+'/'+(Daylight.mode==='night'||(Daylight.mode==='auto'&&!Daylight.isDay())?'n':'d');if(sceneBgKey!==key||!sceneBg){sceneBg=document.createElement('canvas');sceneBg.width=Math.round(w*d);sceneBg.height=Math.round(h*d);const b=sceneBg.getContext('2d');b.scale(d,d);Daylight.drawPhoto(b,w,h);if(Daylight.mode==='night'||(Daylight.mode==='auto'&&!Daylight.isDay())){b.fillStyle='rgba(9,14,30,.58)';b.fillRect(0,0,w,h);}RoomDetails.drawClock(b,w,h,wallClockText);sceneBgKey=key;}return sceneBg;}
 function foodsLayer(w,h,d){const key=sim.foodsVersion+'/'+sim.light.toFixed(2)+'x'+w;if(foodLayerKey!==key||!foodLayer||foodLayer.width!==Math.round(w*d)){foodLayer=document.createElement('canvas');foodLayer.width=Math.round(w*d);foodLayer.height=Math.round(h*d);const f=foodLayer.getContext('2d');f.scale(d,d);for(const food of sim.foods)if(food.placed)FoodArt.draw(f,food.kind,food.x*w,food.y*h,w*.023,1,{seed:food.x*8192+food.y*16384,light:sim.light});foodLayerKey=key;}return foodLayer;}
 let sceneViewW=.4,sceneViewH=.4;function renderScene(){const [cw,ch,d]=resize(canvas),w=Math.max(cw,ch*16/9),h=w*9/16;sceneViewW=cw/(camera.zoom*w);sceneViewH=ch/(camera.zoom*h);
  // Hard guarantee: the drawn view can never leave the photograph, even while
@@ -267,10 +267,28 @@ document.addEventListener('selectstart',e=>{if(e.target instanceof Element&&!e.t
 document.addEventListener('touchmove',e=>{if(!e.target.closest('aside,.audio-dock,.room-dock'))e.preventDefault();},{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault());
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){clearTextSelection();selectTool();if(flyView)setFlyView(false);return;}if(e.key.toLowerCase()==='v'&&!e.target.matches('input,select,textarea')){setFlyView(!flyView);return;}if(e.key.toLowerCase()==='p'&&!e.target.matches('input,select,textarea')){$('panel-toggle').click();return;}if(e.target.matches('input,select,button,summary,a'))return;if(e.code==='Space'){e.preventDefault();$('pause').click();}if(e.key.toLowerCase()==='s')$('scare').click();});
+function pickScene(){
+ const saved=localStorage.getItem('fly-scene');
+ const cards=$('scene-cards');
+ if(saved){cards.querySelector('[data-scene="'+saved+'"]')?.classList.add('current');
+  cards.addEventListener('click',e=>{const b=e.target.closest('[data-scene]');if(b&&b.dataset.scene!==saved){localStorage.setItem('fly-scene',b.dataset.scene);location.reload();}});
+  return Promise.resolve(saved);}
+ return new Promise(res=>{cards.addEventListener('click',e=>{const b=e.target.closest('[data-scene]');if(b){localStorage.setItem('fly-scene',b.dataset.scene);res(b.dataset.scene);}});});
+}
 async function boot(){try{
+ const sceneId=await pickScene();
+ KitchenScenes.setActive(sceneId);
+ const scene=KitchenScenes.forScene(sceneId);
+ Kitchen.setSurfaces(scene.surfaces);
+ RoomDetails.setClock(scene.clock);
+ document.querySelectorAll('[data-scene-switch]').forEach(b=>b.classList.toggle('active',b.dataset.sceneSwitch===sceneId));
+ FlyStorage.setKey('fly-brain-kitchen-save-v2-'+sceneId);
  const restored=loadGame();
  if(restored)sim.note('Save loaded — the kitchen continues where it left off.');
- const response=await fetch('brain.json');if(!response.ok)throw new Error('Brain file could not be loaded');model=await response.json();photo.src='kitchen.jpg';await Promise.all([photo.decode(),FoodArt.load()]);await Daylight.load(photo,false);const sampler=document.createElement('canvas');sampler.width=1024;sampler.height=576;const sampleCtx=sampler.getContext('2d',{willReadFrequently:true});sampleCtx.drawImage(photo,0,0,1024,576);texture=sampleCtx.getImageData(0,0,1024,576);refreshFoodTexture();const xs=model.cells.map(c=>c.position[0]),zs=model.cells.map(c=>c.position[2]),xmin=Math.min(...xs),xmax=Math.max(...xs),zmin=Math.min(...zs),zmax=Math.max(...zs);brainPoints=xs.map((x,i)=>[(x-xmin)/(xmax-xmin),(zs[i]-zmin)/(zmax-zmin)]);$('senses').innerHTML=model.inputs.map((n,i)=>'<div><div class="pair"><span>'+n+'</span></div><div class="bar"><i id="sense'+i+'"></i></div></div>').join('');$('brain-info').textContent=model.neurons.toLocaleString()+' neurons · '+model.edges.toLocaleString()+' directed edges. '+model.cells.length+' sampled cells shown. Descending activity modulates turning.';eyeMap=await (await fetch('eye-map.json')).json();retina?.dispose();retina=new FlyVision.AsyncRetina(eyeMap);await retina.ready;sampleVision(0);neuralStep();$('loading').remove();requestAnimationFrame(frame);window.kitchenDebug={get simulation(){return sim;},model,get activity(){return activity;},get paused(){return paused;},camera,get following(){return following;},get colony(){return colony;},get followTarget(){return followTarget;},setFollowTarget,saveGame,loadGame,get eyeViews(){return eyeViews;},get seed(){return sim.seed;}};}catch(e){$('loading').textContent='Unable to start: '+e.message+'. Launch with launch.ps1; opening this file directly cannot load the brain.';$('loading').classList.add('error');}}
+ const response=await fetch('brain.json');if(!response.ok)throw new Error('Brain file could not be loaded');model=await response.json();photo.src=scene.photo;await Promise.all([photo.decode(),FoodArt.load()]);await Daylight.load(photo,scene.windowExterior);sim=new Kitchen.Simulation((Math.random()*4294967296)>>>0,scene.foods);
+  sim.x=scene.start.x;sim.y=scene.start.y;wireLaying();
+  previousPose=FlightArt.pose(sim);visiblePose=FlightArt.pose(sim);history=[];activity=[];snapshotColony();
+  const sampler=document.createElement('canvas');sampler.width=1024;sampler.height=576;const sampleCtx=sampler.getContext('2d',{willReadFrequently:true});sampleCtx.drawImage(photo,0,0,1024,576);texture=sampleCtx.getImageData(0,0,1024,576);refreshFoodTexture();const xs=model.cells.map(c=>c.position[0]),zs=model.cells.map(c=>c.position[2]),xmin=Math.min(...xs),xmax=Math.max(...xs),zmin=Math.min(...zs),zmax=Math.max(...zs);brainPoints=xs.map((x,i)=>[(x-xmin)/(xmax-xmin),(zs[i]-zmin)/(zmax-zmin)]);$('senses').innerHTML=model.inputs.map((n,i)=>'<div><div class="pair"><span>'+n+'</span></div><div class="bar"><i id="sense'+i+'"></i></div></div>').join('');$('brain-info').textContent=model.neurons.toLocaleString()+' neurons · '+model.edges.toLocaleString()+' directed edges. '+model.cells.length+' sampled cells shown. Descending activity modulates turning.';eyeMap=await (await fetch('eye-map.json')).json();retina?.dispose();retina=new FlyVision.AsyncRetina(eyeMap);await retina.ready;sampleVision(0);neuralStep();$('loading').remove();requestAnimationFrame(frame);window.kitchenDebug={get simulation(){return sim;},model,get activity(){return activity;},get paused(){return paused;},camera,get following(){return following;},get colony(){return colony;},get followTarget(){return followTarget;},setFollowTarget,saveGame,loadGame,get eyeViews(){return eyeViews;},get seed(){return sim.seed;}};}catch(e){$('loading').textContent='Unable to start: '+e.message+'. Launch with launch.ps1; opening this file directly cannot load the brain.';$('loading').classList.add('error');}}
 // Floating panels open without moving or resizing the playfield.
 const settingDocks=[...document.querySelectorAll('.room-dock,.audio-dock')];
 settingDocks.forEach(dock=>dock.addEventListener('toggle',()=>{if(dock.open)settingDocks.forEach(other=>{if(other!==dock)other.open=false;});}));
@@ -280,6 +298,7 @@ for(const [id,title] of [['pause','Pause / resume · Space'],['scare','Startle t
 $('vision-info').onclick=()=> $('vision-details').showModal();
 $('vision-close').onclick=()=> $('vision-details').close();
 document.querySelectorAll('[data-outside]').forEach(button=>button.onclick=()=>{Daylight.setMode(button.dataset.outside);document.querySelectorAll('[data-outside]').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});refreshFoodTexture();});
+document.querySelectorAll('[data-scene-switch]').forEach(b=>b.onclick=()=>{if(localStorage.getItem('fly-scene')!==b.dataset.sceneSwitch){localStorage.setItem('fly-scene',b.dataset.sceneSwitch);location.reload();}});
 boot();
 
 
