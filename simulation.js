@@ -7,14 +7,14 @@ const foodTypes={apple:{name:'Apple piece',icon:'🍎',strength:1.3,feedRate:.11
 // Hand-traced against the 4032 × 2268 kitchen photo, in normalized image coordinates.
 // Front edges stop at the horizontal surface, not the appliance faces below it.
 const surfaces=[
- {name:'Counter',poly:[[0,.566],[.283,.490],[.575,.460],[.576,.496],[0,.704]]},
- {name:'Window ledge',poly:[[.554,.420],[1,.512],[1,.618],[.554,.506]]},
- {name:'Radiator top',poly:[[.59,.605],[1,.70],[1,.765],[.59,.685]]},
- {name:'Radiator',food:false,poly:[[.59,.685],[1,.765],[1,1],[.59,1]]},
- {name:'Top shelf',poly:[[.005,.18],[.43,.18],[.43,.245],[.005,.245]]},
- {name:'Freezer top',poly:[[.44,.545],[.55,.605],[.55,.64],[.44,.578]]},
- {name:'Trolley',poly:[[.59,.63],[.66,.63],[.66,.715],[.59,.715]]},
- {name:'Table',poly:[[.321,1],[.359,.921],[.415,.842],[.488,.814],[.532,.809],[.640,.838],[.718,.890],[.806,1]]}
+ {name:'Counter',poly:[[0,.56],[.283,.488],[.57,.455],[.555,.497],[.44,.531],[.24,.587],[0,.686]]},
+ {name:'Window ledge',poly:[[.554,.395],[1,.505],[1,.592],[.554,.482]]},
+ {name:'Radiator top',poly:[[.60,.574],[.815,.655],[.815,.695],[.60,.614]]},
+ {name:'Radiator',food:false,poly:[[.60,.614],[.612,.758],[.668,.758],[.668,.64],[.815,.695],[.85,.703],[.85,1],[.60,1]]},
+ {name:'Top shelf',poly:[[0,.205],[.52,.222],[.52,.242],[0,.225]]},
+ {name:'Freezer top',poly:[[.435,.55],[.60,.50],[.615,.532],[.445,.588]]},
+ {name:'Trolley',poly:[[.553,.708],[.668,.702],[.668,.75],[.553,.756]]},
+ {name:'Table',poly:[[.321,1],[.36,.921],[.415,.842],[.488,.814],[.532,.809],[.66,.833],[.71,.857],[.76,.887],[.805,.925],[.84,1]]}
 ];
 surfaces.push(room.appleSurface);
 function inside(p,poly){let result=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a[1]>p.y)!==(b[1]>p.y)&&p.x<(b[0]-a[0])*(p.y-a[1])/(b[1]-a[1])+a[0])result=!result;}return result;}
